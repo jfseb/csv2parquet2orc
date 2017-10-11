@@ -61,7 +61,7 @@ public class CSV2ParquetTimestampUtils {
     return df.format(dt);
   }
 
-  public static String parseDateOrInt(String val) {
+  public static String parseDateOrIntStrict(String val) {
     DateFormat df = new SimpleDateFormat("yyyy-MM-dd"); // , Locale.ENGLISH);
     df.setTimeZone(TimeZone.getTimeZone("UTC"));
     java.util.Date result;
@@ -69,7 +69,19 @@ public class CSV2ParquetTimestampUtils {
       result = df.parse(val);
       return "" + Double.valueOf(result.getTime() / (24l * 60 * 60 * 1000)).intValue();
     } catch (ParseException e) {
-      if (false && val != null && (val.length() == "yyyyMMdd".length())) {
+      return "" + Long.parseLong(val);          
+      }
+  }
+  
+  public static String parseDateOrIntSloppy(String val) {
+    DateFormat df = new SimpleDateFormat("yyyy-MM-dd"); // , Locale.ENGLISH);
+    df.setTimeZone(TimeZone.getTimeZone("UTC"));
+    java.util.Date result;
+    try {
+      result = df.parse(val);
+      return "" + Double.valueOf(result.getTime() / (24l * 60 * 60 * 1000)).intValue();
+    } catch (ParseException e) {
+      if (val != null && (val.length() == "yyyyMMdd".length())) {
         DateFormat df2 = new SimpleDateFormat("yyyyMMdd"); // , Locale.ENGLISH);
         df2.setTimeZone(TimeZone.getTimeZone("UTC"));
         try {

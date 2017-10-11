@@ -417,7 +417,7 @@ public class Utils {
           assertEquals("line " + lineNumber, lineIn, lineOut);
         }
       } catch (org.junit.ComparisonFailure cf) {
-        throw new AssertionError("difference in files \n" + expectedCsvFile.toString() + "\n" + outputCsvFile.toString(), cf);
+        throw new AssertionError("difference in files \n" + expectedCsvFile.toString() + "\n" + outputCsvFile.toString() + "\n" + cf.toString(), cf);
       }
       assertNull("line " + lineNumber, lineIn);
       assertNull("line " + lineNumber, out.readLine());

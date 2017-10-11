@@ -10,11 +10,11 @@ message m {
 }
 
 
-cust_key INT NULL;
+cust_key BIGINT NULL;
 name VARCHAR NULL;
 address VARCHAR NULL;
-nation_key SHORTINT NULL;
+nation_key SMALLINT NULL;
 phone VARCHAR NULL;
-acctbal DOUBLESHORTINT NULL;
+acctbal DOUBLE NULL;
 mktsegment VARCHAR NULL;
 comment_col VARCHAR NULL;

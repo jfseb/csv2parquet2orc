@@ -12,10 +12,10 @@ struct<cust_key:int,name:string,address:string,nation_keys:smallint,phone:string
   "comment_col": {"category": "string", "id": 8, "max": 8}]}
 
 
-cust_key SHORTINT NULL;
+cust_key INTEGER NULL;
 name STRING NULL;
 address STRING NULL;
-nation_keys SHORTINT NULL;
+nation_keys SMALLINT NULL;
 phone STRING NULL;
 acctbal DOUBLE NULL;
 mktsegment STRING NULL;

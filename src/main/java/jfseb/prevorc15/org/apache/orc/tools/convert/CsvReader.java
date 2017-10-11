@@ -177,7 +177,7 @@ public class CsvReader implements RecordReader {
         try {
           String val = null;
           try {
-            val = CSV2ParquetTimestampUtils.parseDateOrInt(values[offset]);
+            val = CSV2ParquetTimestampUtils.parseDateOrIntStrict(values[offset]);
           } catch (NumberFormatException e) {
   
           }
@@ -219,7 +219,7 @@ public class CsvReader implements RecordReader {
         column.noNulls = false;
         column.isNull[row] = true;
       } else {
-        String val = CSV2ParquetTimestampUtils.parseDateOrInt(values[offset]);
+        String val = CSV2ParquetTimestampUtils.parseDateOrIntSloppy(values[offset]);
         ((LongColumnVector) column).vector[row] = Long.parseLong(val);
       }
     }

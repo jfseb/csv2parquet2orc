@@ -113,7 +113,7 @@ public class CsvWriteSupport extends WriteSupport<List<String>> {
             break;
           case INT32:
             if (primtype.getOriginalType() == OriginalType.DATE) {
-              val = CSV2ParquetTimestampUtils.parseDateOrInt(val);
+              val = CSV2ParquetTimestampUtils.parseDateOrIntSloppy(val);
             } else if (primtype.getOriginalType() == OriginalType.TIME_MILLIS) {
               val = Integer.valueOf(CSV2ParquetTimestampUtils.parseTimeMillisOrInt(val)).toString();
             }

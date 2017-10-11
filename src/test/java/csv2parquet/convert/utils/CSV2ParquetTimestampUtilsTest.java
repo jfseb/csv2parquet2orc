@@ -60,27 +60,31 @@ public class CSV2ParquetTimestampUtilsTest {
   @Test
   public void testFromDate() throws ParseException {
     String ts = "1970-01-02";
-    int res = Integer.parseInt(CSV2ParquetTimestampUtils.parseDateOrInt(ts));
+    int res = Integer.parseInt(CSV2ParquetTimestampUtils.parseDateOrIntStrict(ts));
     assertEquals(ts,CSV2ParquetTimestampUtils.formatDate(res));
+    int res2 = Integer.parseInt(CSV2ParquetTimestampUtils.parseDateOrIntSloppy(ts));
+    assertEquals(ts,CSV2ParquetTimestampUtils.formatDate(res2));
   }
   
   @Test
   public void testFromDateSAP() throws ParseException {
     String ts = "19700102";
-    int res = Integer.parseInt(CSV2ParquetTimestampUtils.parseDateOrInt(ts));
+    int res = Integer.parseInt(CSV2ParquetTimestampUtils.parseDateOrIntSloppy(ts));
     assertEquals("1970-01-02",CSV2ParquetTimestampUtils.formatDate(res));
+    long reslong = Long.parseLong(CSV2ParquetTimestampUtils.parseDateOrIntStrict(ts));
+    assertEquals(19700102,reslong);
   }
   @Test
   public void testFromDateSAP2() throws ParseException {
     String ts = "20170102";
-    int res = Integer.parseInt(CSV2ParquetTimestampUtils.parseDateOrInt(ts));
+    int res = Integer.parseInt(CSV2ParquetTimestampUtils.parseDateOrIntSloppy(ts));
     assertEquals("2017-01-02",CSV2ParquetTimestampUtils.formatDate(res));
   }
   
   @Test
   public void testFromDate2() throws ParseException {
     String ts = "2017-05-02";
-    int res = Integer.parseInt(CSV2ParquetTimestampUtils.parseDateOrInt(ts));
+    int res = Integer.parseInt(CSV2ParquetTimestampUtils.parseDateOrIntStrict(ts));
     assertEquals(ts,CSV2ParquetTimestampUtils.formatDate(res));
   }
 }
