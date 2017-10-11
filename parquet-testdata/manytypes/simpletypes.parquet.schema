@@ -1,0 +1,1 @@
+message m {  OPTIONAL int64 along;  OPTIONAL binary name;  OPTIONAL int32 anint32;  OPTIONAL double adouble;  OPTIONAL float afloat;  OPTIONAL int96 atimestamp;}

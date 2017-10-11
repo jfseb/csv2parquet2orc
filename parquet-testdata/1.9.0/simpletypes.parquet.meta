@@ -1,0 +1,20 @@
+file:        file:/E:/projects/parquet/csv2parquet/parquet-testdata/1.9.0/simpletypes.plain.parquet 
+creator:     parquet-mr version 1.9.0 (build 38262e2c80015d0935dad20f8e18f2d6f9fbd03c) 
+
+file schema: m 
+--------------------------------------------------------------------------------
+along:       OPTIONAL INT64 R:0 D:1
+name:        OPTIONAL BINARY R:0 D:1
+anint32:     OPTIONAL INT32 R:0 D:1
+adouble:     OPTIONAL DOUBLE R:0 D:1
+afloat:      OPTIONAL FLOAT R:0 D:1
+atimestamp:  OPTIONAL INT96 R:0 D:1
+
+row group 1: RC:3 TS:470 OFFSET:4 
+--------------------------------------------------------------------------------
+along:        INT64 UNCOMPRESSED DO:0 FPO:4 SZ:71/71/1.00 VC:3 ENC:BIT_PACKED,PLAIN,RLE
+name:         BINARY UNCOMPRESSED DO:0 FPO:75 SZ:135/135/1.00 VC:3 ENC:BIT_PACKED,PLAIN,RLE
+anint32:      INT32 UNCOMPRESSED DO:0 FPO:210 SZ:51/51/1.00 VC:3 ENC:BIT_PACKED,PLAIN,RLE
+adouble:      DOUBLE UNCOMPRESSED DO:0 FPO:261 SZ:71/71/1.00 VC:3 ENC:BIT_PACKED,PLAIN,RLE
+afloat:       FLOAT UNCOMPRESSED DO:0 FPO:332 SZ:51/51/1.00 VC:3 ENC:BIT_PACKED,PLAIN,RLE
+atimestamp:   INT96 UNCOMPRESSED DO:0 FPO:383 SZ:91/91/1.00 VC:3 ENC:BIT_PACKED,PLAIN,RLE

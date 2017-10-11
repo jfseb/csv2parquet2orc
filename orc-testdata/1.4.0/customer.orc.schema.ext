@@ -1,0 +1,22 @@
+struct<cust_key:int,name:string,address:string,nation_keys:smallint,phone:string,acctbal:double,mktsegment:string,comment_col:string>
+
+
+{"category": "struct", "id": 0, "max": 8, "fields": [
+  "cust_key": {"category": "int", "id": 1, "max": 1},
+  "name": {"category": "string", "id": 2, "max": 2},
+  "address": {"category": "string", "id": 3, "max": 3},
+  "nation_keys": {"category": "smallint", "id": 4, "max": 4},
+  "phone": {"category": "string", "id": 5, "max": 5},
+  "acctbal": {"category": "double", "id": 6, "max": 6},
+  "mktsegment": {"category": "string", "id": 7, "max": 7},
+  "comment_col": {"category": "string", "id": 8, "max": 8}]}
+
+
+cust_key SHORTINT NULL;
+name STRING NULL;
+address STRING NULL;
+nation_keys SHORTINT NULL;
+phone STRING NULL;
+acctbal DOUBLE NULL;
+mktsegment STRING NULL;
+comment_col STRING NULL;

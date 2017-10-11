@@ -1,0 +1,70 @@
+Structure for orc-testdata/1.4.0/customer.plain.orc
+File Version: 0.12 with ORC_135
+Rows: 150000
+Compression: ZLIB
+Compression size: 262144
+Type: struct<cust_key:int,name:string,address:string,nation_keys:smallint,phone:string,acctbal:double,mktsegment:string,comment_col:string>
+
+Stripe Statistics:
+  Stripe 1:
+    Column 0: count: 150000 hasNull: false
+    Column 1: count: 150000 hasNull: false min: 1 max: 150000 sum: 11250075000
+    Column 2: count: 150000 hasNull: false min: Customer#000000001 max: Customer#000150000 sum: 2700000
+    Column 3: count: 150000 hasNull: false min:    2uZwVhQvwA max: zzxGktzXTMKS1BxZlgQ9nqQ sum: 3758056
+    Column 4: count: 150000 hasNull: false min: 0 max: 24 sum: 1801005
+    Column 5: count: 150000 hasNull: false min: 10-100-106-1617 max: 34-999-618-6881 sum: 2250000
+    Column 6: count: 150000 hasNull: false min: -999.99 max: 9999.99 sum: 6.743268497399992E8
+    Column 7: count: 150000 hasNull: false min: AUTOMOBILE max: MACHINERY sum: 1349610
+    Column 8: count: 150000 hasNull: false min:  Tiresias according to the slyly blithe instructions detect quickly at the slyly express courts. express dinos wake  max: zzle. blithely regular instructions cajol sum: 10876099
+
+File Statistics:
+  Column 0: count: 150000 hasNull: false
+  Column 1: count: 150000 hasNull: false min: 1 max: 150000 sum: 11250075000
+  Column 2: count: 150000 hasNull: false min: Customer#000000001 max: Customer#000150000 sum: 2700000
+  Column 3: count: 150000 hasNull: false min:    2uZwVhQvwA max: zzxGktzXTMKS1BxZlgQ9nqQ sum: 3758056
+  Column 4: count: 150000 hasNull: false min: 0 max: 24 sum: 1801005
+  Column 5: count: 150000 hasNull: false min: 10-100-106-1617 max: 34-999-618-6881 sum: 2250000
+  Column 6: count: 150000 hasNull: false min: -999.99 max: 9999.99 sum: 6.743268497399992E8
+  Column 7: count: 150000 hasNull: false min: AUTOMOBILE max: MACHINERY sum: 1349610
+  Column 8: count: 150000 hasNull: false min:  Tiresias according to the slyly blithe instructions detect quickly at the slyly express courts. express dinos wake  max: zzle. blithely regular instructions cajol sum: 10876099
+
+Stripes:
+  Stripe: offset: 3 data: 8093962 rows: 150000 tail: 162 index: 4320
+    Stream: column 0 section ROW_INDEX start: 3 length 17
+    Stream: column 1 section ROW_INDEX start: 20 length 315
+    Stream: column 2 section ROW_INDEX start: 335 length 343
+    Stream: column 3 section ROW_INDEX start: 678 length 1111
+    Stream: column 4 section ROW_INDEX start: 1789 length 187
+    Stream: column 5 section ROW_INDEX start: 1976 length 464
+    Stream: column 6 section ROW_INDEX start: 2440 length 410
+    Stream: column 7 section ROW_INDEX start: 2850 length 193
+    Stream: column 8 section ROW_INDEX start: 3043 length 1280
+    Stream: column 1 section DATA start: 4323 length 417
+    Stream: column 2 section DATA start: 4740 length 378173
+    Stream: column 2 section LENGTH start: 382913 length 26
+    Stream: column 3 section DATA start: 382939 length 2906032
+    Stream: column 3 section LENGTH start: 3288971 length 102680
+    Stream: column 4 section DATA start: 3391651 length 99315
+    Stream: column 5 section DATA start: 3490966 length 1095729
+    Stream: column 5 section LENGTH start: 4586695 length 26
+    Stream: column 6 section DATA start: 4586721 length 634513
+    Stream: column 7 section DATA start: 5221234 length 58187
+    Stream: column 7 section LENGTH start: 5279421 length 8
+    Stream: column 7 section DICTIONARY_DATA start: 5279429 length 48
+    Stream: column 8 section DATA start: 5279477 length 2694565
+    Stream: column 8 section LENGTH start: 7974042 length 124243
+    Encoding column 0: DIRECT
+    Encoding column 1: DIRECT_V2
+    Encoding column 2: DIRECT_V2
+    Encoding column 3: DIRECT_V2
+    Encoding column 4: DIRECT_V2
+    Encoding column 5: DIRECT_V2
+    Encoding column 6: DIRECT
+    Encoding column 7: DICTIONARY_V2[5]
+    Encoding column 8: DIRECT_V2
+
+File length: 8099355 bytes
+Padding length: 0 bytes
+Padding ratio: 0%
+________________________________________________________________________________________________________________________
+

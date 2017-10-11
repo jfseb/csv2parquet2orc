@@ -1,0 +1,1 @@
+message m {  OPTIONAL int32 adate (DATE);  OPTIONAL int32 anotherdate (DATE);  OPTIONAL int32 atime_millis (TIME_MILLIS) ;  OPTIONAL int32 btime_millis (TIME_MILLIS) ;  OPTIONAL int64 atime_micros (TIME_MICROS) ; }

@@ -1,0 +1,1 @@
+struct<along:int,aname:string,anint32:smallint,adouble:double,afloat:float,atimestamp:timestamp>

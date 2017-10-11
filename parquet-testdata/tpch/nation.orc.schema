@@ -1,0 +1,5 @@
+struct<
+nation_key:smallint,
+name:string,
+region_key:smallint,
+comment_col:string>

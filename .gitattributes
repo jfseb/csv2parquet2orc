@@ -1,0 +1,3 @@
+*.parquet binary
+*.orc binary
+*.schema text

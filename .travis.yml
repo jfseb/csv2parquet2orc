@@ -1,0 +1,9 @@
+language: java
+
+before_install:
+    - export JAVA_HOME=/usr/lib/jvm/java-8-oracle
+
+jdk:
+  - oraclejdk8
+  - oraclejdk7
+  - openjdk7

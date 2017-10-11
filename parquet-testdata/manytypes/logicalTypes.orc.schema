@@ -1,0 +1,1 @@
+struct<adate:DATE,anotherdate:DATE,atime_millis:smallint,btime_millis:smallint,atime_micros:int>

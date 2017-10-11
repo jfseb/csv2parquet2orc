@@ -1,0 +1,49 @@
+Structure for target/orc/logicalTypes.plain.orc
+File Version: 0.12 with ORC_135
+Rows: 3
+Compression: ZLIB
+Compression size: 262144
+Type: struct<adate:date,anotherdate:date,atime_millis:smallint,btime_millis:smallint,atime_micros:int>
+
+Stripe Statistics:
+  Stripe 1:
+    Column 0: count: 3 hasNull: false
+    Column 1: count: 3 hasNull: false min: 2017-03-05 max: 2017-07-07
+    Column 2: count: 3 hasNull: false min: 1915-12-22 max: 2025-02-11
+    Column 3: count: 3 hasNull: false min: -369345 max: -369345 sum: -1108035
+    Column 4: count: 3 hasNull: false min: 85530000123 max: 85530000123 sum: 256590000369
+    Column 5: count: 3 hasNull: false min: 85530123456 max: 85530123456 sum: 256590370368
+
+File Statistics:
+  Column 0: count: 3 hasNull: false
+  Column 1: count: 3 hasNull: false min: 2017-03-05 max: 2017-07-07
+  Column 2: count: 3 hasNull: false min: 1915-12-22 max: 2025-02-11
+  Column 3: count: 3 hasNull: false min: -369345 max: -369345 sum: -1108035
+  Column 4: count: 3 hasNull: false min: 85530000123 max: 85530000123 sum: 256590000369
+  Column 5: count: 3 hasNull: false min: 85530123456 max: 85530123456 sum: 256590370368
+
+Stripes:
+  Stripe: offset: 3 data: 47 rows: 3 tail: 64 index: 169
+    Stream: column 0 section ROW_INDEX start: 3 length 11
+    Stream: column 1 section ROW_INDEX start: 14 length 26
+    Stream: column 2 section ROW_INDEX start: 40 length 26
+    Stream: column 3 section ROW_INDEX start: 66 length 31
+    Stream: column 4 section ROW_INDEX start: 97 length 38
+    Stream: column 5 section ROW_INDEX start: 135 length 37
+    Stream: column 1 section DATA start: 172 length 11
+    Stream: column 2 section DATA start: 183 length 11
+    Stream: column 3 section DATA start: 194 length 7
+    Stream: column 4 section DATA start: 201 length 9
+    Stream: column 5 section DATA start: 210 length 9
+    Encoding column 0: DIRECT
+    Encoding column 1: DIRECT_V2
+    Encoding column 2: DIRECT_V2
+    Encoding column 3: DIRECT_V2
+    Encoding column 4: DIRECT_V2
+    Encoding column 5: DIRECT_V2
+
+File length: 575 bytes
+Padding length: 0 bytes
+Padding ratio: 0%
+________________________________________________________________________________________________________________________
+

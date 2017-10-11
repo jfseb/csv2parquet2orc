@@ -1,0 +1,1 @@
+struct<cust_key:int,name:string,address:string,nation_keys:smallint,phone:string,acctbal:double,mktsegment:string,comment_col:string>
