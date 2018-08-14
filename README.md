@@ -25,6 +25,8 @@ options:
 -D parquet.DEFAULT_BLOCK_SIZE <int> 
 -D parquet.DEFAULT_PAGE_SIZE <int>
 
+-D csvformat=binary   reads columns as e.g.  |FFEF|FFEF 
+
 ##cv to orc 
 
 java -jar csv2parquet2orc-0.0.2-*   convert  -D orc.compression=ZIP   input.csv  -s input.csv.schema -o out.orc 
