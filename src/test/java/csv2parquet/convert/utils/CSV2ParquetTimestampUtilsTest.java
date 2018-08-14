@@ -12,9 +12,53 @@ import jfseb.csv2parquet.convert.utils.CSV2ParquetTimestampUtils;
 public class CSV2ParquetTimestampUtilsTest {
 
   @Test
+  public void testFromDateTimeStringClose() throws ParseException {
+    String ts = "1970-01-01 00:01:02";
+    assertEquals(Double.valueOf(0.9f).intValue(), 0);
+    //assertEquals(Double.valueOf(-0.9f).intValue(), -1);
+    assertEquals(Double.valueOf(Math.floor(-0.9f)).intValue(), -1);
+    assertEquals(Double.valueOf(Math.floor(-0.1f)).intValue(), -1);
+       
+    NanoTime res = CSV2ParquetTimestampUtils.fromDateTimeString(ts);
+    // '1970-01-27 18:11:12
+    assertEquals(ts,CSV2ParquetTimestampUtils.binaryToDateTimeString(res.toBinary()));
+    
+  }
+  
+  
+  @Test
+  public void testFromDateTimeStringClose2() throws ParseException {
+    String ts = "1970-01-01 00:00:00";
+    assertEquals(Double.valueOf(0.9f).intValue(), 0);
+    //assertEquals(Double.valueOf(-0.9f).intValue(), -1);
+    assertEquals(Double.valueOf(Math.floor(-0.9f)).intValue(), -1);
+    assertEquals(Double.valueOf(Math.floor(-0.1f)).intValue(), -1);
+       
+    NanoTime res = CSV2ParquetTimestampUtils.fromDateTimeString(ts);
+    // '1970-01-27 18:11:12
+    assertEquals(ts,CSV2ParquetTimestampUtils.binaryToDateTimeString(res.toBinary()));
+    
+  }
+
+  @Test
+  public void testFromDateTimeStringCloseBelow() throws ParseException {
+    String ts = "1969-12-31 23:59:04";
+    assertEquals(Double.valueOf(0.9f).intValue(), 0);
+    //assertEquals(Double.valueOf(-0.9f).intValue(), -1);
+    assertEquals(Double.valueOf(Math.floor(-0.9f)).intValue(), -1);
+    assertEquals(Double.valueOf(Math.floor(-0.1f)).intValue(), -1);
+       
+    NanoTime res = CSV2ParquetTimestampUtils.fromDateTimeString(ts);
+    // '1970-01-27 18:11:12
+    assertEquals(ts,CSV2ParquetTimestampUtils.binaryToDateTimeString(res.toBinary()));
+    
+  }
+  
+  @Test
   public void testFromDateTimeString() throws ParseException {
     String ts = "2017-01-02 00:13:45";
     NanoTime res = CSV2ParquetTimestampUtils.fromDateTimeString(ts);
+    // '1970-01-27 18:11:12
     assertEquals(ts,CSV2ParquetTimestampUtils.binaryToDateTimeString(res.toBinary()));
     
   }

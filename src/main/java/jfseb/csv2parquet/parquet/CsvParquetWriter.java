@@ -30,22 +30,22 @@ import jfseb.csv2parquet.convert.CsvWriteSupport;
 public class CsvParquetWriter extends ParquetWriter<List<String>> {
 
 	public CsvParquetWriter(Path file, MessageType schema) throws IOException {
-		this(file, schema, false);
+		this(file, schema, false, false);
 	}
 
-	public CsvParquetWriter(Path file, MessageType schema, boolean enableDictionary) throws IOException {
-		this(file, schema, CompressionCodecName.UNCOMPRESSED, enableDictionary);
+	public CsvParquetWriter(Path file, MessageType schema, boolean enableDictionary, boolean readAsBinary) throws IOException {
+		this(file, schema, CompressionCodecName.UNCOMPRESSED, enableDictionary, readAsBinary);
 	}
 
-	public CsvParquetWriter(Path file, MessageType schema, CompressionCodecName codecName, boolean enableDictionary)
+	public CsvParquetWriter(Path file, MessageType schema, CompressionCodecName codecName, boolean enableDictionary, boolean readAsBinary)
 			throws IOException {
-		super(file, (WriteSupport<List<String>>) new CsvWriteSupport(schema), codecName, DEFAULT_BLOCK_SIZE,
+		super(file, (WriteSupport<List<String>>) new CsvWriteSupport(schema, readAsBinary), codecName, DEFAULT_BLOCK_SIZE,
 				DEFAULT_PAGE_SIZE, enableDictionary, false);
 	}
 
 	public CsvParquetWriter(Path file, MessageType schema, CompressionCodecName codecName, int block_size,
-			int page_size, boolean enableDictionary) throws IOException {
-		super(file, (WriteSupport<List<String>>) new CsvWriteSupport(schema), codecName, block_size, page_size,
+			int page_size, boolean enableDictionary, boolean readAsBinary) throws IOException {
+		super(file, (WriteSupport<List<String>>) new CsvWriteSupport(schema, readAsBinary), codecName, block_size, page_size,
 				enableDictionary, false);
 
 	}

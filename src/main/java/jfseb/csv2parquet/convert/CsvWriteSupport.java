@@ -37,6 +37,7 @@ import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName;
 import org.apache.parquet.schema.Type;
 
 import jfseb.csv2parquet.convert.utils.CSV2ParquetTimestampUtils;
+import jfseb.csv2parquet.utils.ParseHexRec;
 
 //import parquet.example.data.simple.NanoTime;
 
@@ -44,11 +45,13 @@ public class CsvWriteSupport extends WriteSupport<List<String>> {
   MessageType schema;
   RecordConsumer recordConsumer;
   List<ColumnDescriptor> cols;
+  boolean readAsBinary;
 
   // TODO: support specifying encodings and compression
-  public CsvWriteSupport(MessageType schema) {
+  public CsvWriteSupport(MessageType schema, boolean readAsBinary) {
     this.schema = schema;
     this.cols = schema.getColumns();
+    this.readAsBinary = readAsBinary;
   }
 
   @Override
@@ -63,6 +66,10 @@ public class CsvWriteSupport extends WriteSupport<List<String>> {
 
   @Override
   public void write(List<String> values) {
+    if(this.readAsBinary) {
+      writeBinary(values);
+      return;
+    }
     if (values.size() != cols.size()) {
       throw new ParquetEncodingException("Invalid input data. Expecting " + cols.size() + " columns. Input had "
           + values.size() + " columns (" + cols + ") : " + values);
@@ -157,6 +164,65 @@ public class CsvWriteSupport extends WriteSupport<List<String>> {
     recordConsumer.endMessage();
   }
 
+
+  public void writeBinary(List<String> values) {
+    if (values.size() != cols.size()) {
+      throw new ParquetEncodingException("Invalid input data. Expecting " + cols.size() + " columns. Input had "
+          + values.size() + " columns (" + cols + ") : " + values);
+    }
+
+    recordConsumer.startMessage();
+    for (int i = 0; i < cols.size(); ++i) {
+      String val = values.get(i);
+      // val.length() == 0 indicates a NULL value.
+      if (val.length() > 0) {
+        ParseHexRec.ParsedRec rec = ParseHexRec.parse(val);
+        
+        recordConsumer.startField(cols.get(i).getPath()[0], i);
+        try {
+          Type primtype = schema.getFields().get(i);
+          switch (cols.get(i).getType()) {
+          case BOOLEAN:
+            recordConsumer.addBoolean(rec.asBool);
+            break;
+          case INT96:
+              if(rec.binary.length() < 96/8) {
+                throw new IllegalArgumentException(" binary too short for int96");
+              }
+              Binary bin = rec.binary.slice(rec.binary.length() - 96/8, rec.binary.length());
+              recordConsumer.addBinary(bin);
+            break;
+          case FLOAT:
+            recordConsumer.addFloat(rec.asFloat);
+            break;
+          case DOUBLE:
+            recordConsumer.addDouble(rec.asDouble);
+            break;
+          case INT32:
+            recordConsumer.addInteger(rec.asInt);
+            break;
+          case INT64:
+            recordConsumer.addLong(rec.asLong);
+            break;
+          case BINARY:
+            recordConsumer.addBinary(rec.binary);
+            break;
+          case FIXED_LEN_BYTE_ARRAY:
+            recordConsumer.addBinary(rec.binary);
+          default:
+            throw new ParquetEncodingException("Unsupported column type: " + cols.get(i).getType());
+          }
+        } catch (java.lang.NumberFormatException e) {
+          throw new IllegalArgumentException("column nr:" + i + " \"" + cols.get(i).getPath()[0] + "\" typed as "
+              + cols.get(i).getType() + " \n value: \"" + val + "\"", e);
+        }
+        recordConsumer.endField(cols.get(i).getPath()[0], i);
+      }
+    }
+    recordConsumer.endMessage();
+  }
+  
+  
   private Binary stringToBinary(Object value) {
     return Binary.fromString(value.toString());
   }

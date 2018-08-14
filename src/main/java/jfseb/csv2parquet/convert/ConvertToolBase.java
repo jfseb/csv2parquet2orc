@@ -32,16 +32,20 @@ public class ConvertToolBase {
   protected final List<FileInformation> fileList;
   protected final String schemaString; // a schema string, if present, or null otherwise
   // protected final File schemaFile;
-  protected final String csvSeparatorAsString;
-  protected final char csvQuote;
-  protected final char csvSeparatorAsChar;
-  protected final char csvEscape;
-  protected final int csvHeaderLines;
-  protected final String csvNullString;
+  public static class CSVOptions {
+  public String csvSeparatorAsString;
+  public char csvQuote;
+  public char csvSeparatorAsChar;
+  public char csvEscape;
+  public int csvHeaderLines;
+  public String csvNullString;
+  public boolean csvFormatBinary;
+  };
+  protected CSVOptions csvOptions = new CSVOptions();
   protected final String outFileName;
   protected Configuration conf;
   protected CommandLine opts;
-
+ 
   protected enum Compression {
     NONE, GZIP
   }
@@ -123,8 +127,8 @@ public class ConvertToolBase {
       }
       case CSV: {
         FSDataInputStream underlying = getFilesystem().open(getPath());
-        return new CsvReader(getReader(underlying), underlying, size, schema, csvSeparatorAsChar, csvQuote, csvEscape,
-            csvHeaderLines, csvNullString);
+        return new CsvReader(getReader(underlying), underlying, size, schema, csvOptions.csvSeparatorAsChar, csvOptions.csvQuote, csvOptions.csvEscape,
+            csvOptions.csvHeaderLines, csvOptions.csvNullString);
       }
       default:
         throw new IllegalArgumentException("Unhandled format " + format + " for " + getPath());
@@ -184,16 +188,19 @@ public class ConvertToolBase {
                 + "  -D parquet.BLOCK_SIZE=<int>  Default:["
                 + String.valueOf(org.apache.parquet.hadoop.ParquetWriter.DEFAULT_BLOCK_SIZE) + "]\n"
                 + "   -D parquet.PAGE_SIZEE=<int>  Default:["
-                + String.valueOf(org.apache.parquet.hadoop.ParquetWriter.DEFAULT_PAGE_SIZE) + "]\n" + ""        
+                + String.valueOf(org.apache.parquet.hadoop.ParquetWriter.DEFAULT_PAGE_SIZE) + "]\n" + "" 
+                + "\n use -q -n -e -S -H to control quote/null/escape/separator/header respectively"
+                + "\n use --csvformat binary to load binary values (or -D csvformat=binary \n"
                 + "orc options are:\n -D orc.compress=[ZIP,SNAPPY,NONE]\n"
                 + "  -D orc.stripe.size,  orc.compress.size, orc.row.index.stride, orc.create.index \n")
         .hasArg().build());
 
-    options.addOption(Option.builder("n").longOpt("null").desc("CSV null string").hasArg().build());
     options.addOption(Option.builder("q").longOpt("quote").desc("CSV quote character").hasArg().build());
+    options.addOption(Option.builder("n").longOpt("null").desc("CSV null string").hasArg().build());
     options.addOption(Option.builder("e").longOpt("escape").desc("CSV escape character").hasArg().build());
     options.addOption(Option.builder("S").longOpt("separator").desc("CSV separator character").hasArg().build());
     options.addOption(Option.builder("H").longOpt("header").desc("CSV header lines").hasArg().build());
+    options.addOption(Option.builder("f").longOpt("csvformat").desc("CSV format [default|binary]").hasArg().build());
 
     /*
      * options.addOption(Option.builder("n").longOpt("null").
@@ -221,12 +228,13 @@ public class ConvertToolBase {
     this.conf = conf;
     this.fileList = buildFileList(opts.getArgs(), conf);
     this.schemaString = getSchemaString(target);
-    this.csvQuote = getCharOption(opts, 'q', '"');
-    this.csvEscape = getCharOption(opts, 'e', '\\');
-    this.csvSeparatorAsString = getStringOption(opts, 'S', ",");
-    this.csvSeparatorAsChar = csvSeparatorAsString.charAt(0);
-    this.csvHeaderLines = getIntOption(opts, 'H', 0);
-    this.csvNullString = opts.getOptionValue('n', "");
+    this.csvOptions.csvQuote = getCharOption(opts, 'q', '"');
+    this.csvOptions.csvEscape = getCharOption(opts, 'e', '\\');
+    this.csvOptions.csvSeparatorAsString = getStringOption(opts, 'S', ",");
+    this.csvOptions.csvSeparatorAsChar = this.csvOptions.csvSeparatorAsString.charAt(0);
+    this.csvOptions.csvHeaderLines = getIntOption(opts, 'H', 0);
+    this.csvOptions.csvFormatBinary = getStringOption(opts,'f', "default").toLowerCase().equals("binary");
+    this.csvOptions.csvNullString = opts.getOptionValue('n', "");
     String filename = getDefaultOutFileName(target);
     this.outFileName = opts.hasOption('o') ? opts.getOptionValue('o') : filename;
     // writer = OrcFile.createWriter(new Path(outFilename),

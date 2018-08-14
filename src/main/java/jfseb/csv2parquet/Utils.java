@@ -124,6 +124,18 @@ public class Utils {
     return csvFiles;
   }
 
+
+  public static File[] getAllBinaryCSVFiles() {
+    File baseDir = new File("./parquet-testdata/csvbinary");
+    final File[] csvFiles = baseDir.listFiles(new FilenameFilter() {
+      public boolean accept(File dir, String name) {
+        return name.endsWith(".csv");
+      }
+    });
+    return csvFiles;
+  }
+
+  
   public static File[] getAllManyTypesCSVFiles() {
     File baseDir = new File("./parquet-testdata/manytypes");
     final File[] csvFiles = baseDir.listFiles(new FilenameFilter() {

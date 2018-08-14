@@ -37,6 +37,7 @@ import org.apache.parquet.schema.PrimitiveType;
 import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName;
 
 import jfseb.csv2parquet.Utils;
+import jfseb.csv2parquet.convert.ConvertToolBase.CSVOptions;
 import jfseb.csv2parquet.convert.utils.CSV2ParquetTimestampUtils;
 import jfseb.csv2parquet.parquet.CsvParquetWriter;
 import jfseb.csv2parquet.utils.SchemaCreator;
@@ -82,7 +83,9 @@ public class ConvertUtils {
       throws IOException {
     String schemaString = ConvertToolBase.getDefaultSchemaByFile(csvFile, ConvertToolBase.Format.PARQUET);
 
-    convertCsvToParquet(csvFile, outputParquetFile, schemaString, enableDictionary, ConvertUtils.DEFAULT_CSV_DELIMITER,
+    CSVOptions csvOptions = new CSVOptions();
+    csvOptions.csvSeparatorAsString = ConvertUtils.DEFAULT_CSV_DELIMITER;
+    convertCsvToParquet(csvFile, outputParquetFile, schemaString, enableDictionary, csvOptions,
         null);
   }
 
@@ -94,9 +97,9 @@ public class ConvertUtils {
   }
 
   public static void convertCsvToParquet(File csvFile, File outputParquetFile, String schemaString,
-      boolean enableDictionary, String csvDelimiter, Configuration conf) throws IOException {
+      boolean enableDictionary, CSVOptions csvOptions, Configuration conf) throws IOException {
 
-    ConvertUtils.CSV_DELIMITER = csvDelimiter;
+    ConvertUtils.CSV_DELIMITER = csvOptions.csvSeparatorAsString;
     System.setProperty("line.separator", "\n");
     LOG.info("Converting " + csvFile.getName() + " to " + outputParquetFile.getName());
     if(schemaString.indexOf("\r\n") > 0 ) {
@@ -111,7 +114,12 @@ public class ConvertUtils {
     CompressionCodecName codecName = CompressionCodecName.UNCOMPRESSED;
     int block_size = org.apache.parquet.hadoop.ParquetWriter.DEFAULT_BLOCK_SIZE;
     int page_size = org.apache.parquet.hadoop.ParquetWriter.DEFAULT_PAGE_SIZE;
+    boolean  readAsBinary = false;
     if (conf != null) {
+      String inputbin = conf.get("csvformat","default");
+      if( "binary".equals(inputbin) || "BINARY".equals(inputbin)) {
+        readAsBinary = true;
+      }
       String cmdline = conf.get("parquet.compress", "GZIP");
       if ("ZIP".equals(cmdline) || "GZIP".equals(cmdline)) {
         codecName = CompressionCodecName.GZIP;
@@ -124,11 +132,12 @@ public class ConvertUtils {
       block_size = conf.getInt("parquet.BLOCK_SIZE", org.apache.parquet.hadoop.ParquetWriter.DEFAULT_BLOCK_SIZE);
       page_size = conf.getInt("parquet.PAGE_SIZE", org.apache.parquet.hadoop.ParquetWriter.DEFAULT_PAGE_SIZE);
     }
+    readAsBinary |= csvOptions.csvFormatBinary;
 
     USchema schemas = SchemaCreator.makeSchema(csvFile,schemaString);
     
     MessageType schema = MessageTypeParser.parseMessageType(rawSchema);
-    CsvParquetWriter writer = new CsvParquetWriter(path, schema, codecName, block_size, page_size, enableDictionary);
+    CsvParquetWriter writer = new CsvParquetWriter(path, schema, codecName, block_size, page_size, enableDictionary, readAsBinary);
 
     BufferedReader br = new BufferedReader(getReader(new FileInputStream(csvFile), csvFile));
     String line;

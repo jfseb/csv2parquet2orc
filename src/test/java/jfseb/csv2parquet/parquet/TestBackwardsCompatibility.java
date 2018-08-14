@@ -127,6 +127,74 @@ public class TestBackwardsCompatibility {
     }
   }
 
+
+  @Test
+  public void testReadCSVBinaryCompatibility() throws Exception {
+    File[] csvFiles = Utils.getAllBinaryCSVFiles();
+    for (File csvFile : csvFiles) {
+      String filename = Utils.getFileNamePrefix(csvFile);
+
+      // With no dictionary - default
+      File parquetTestFile = Utils.getParquetOutputFile(filename, "plain", true);
+      //ConvertUtils.convertCsvToParquet(csvFile, parquetTestFile);
+      File csvTestFile = Utils.getCsvTestFile(filename, "plain", true);
+      //ConvertUtils.convertParquetToCSV(parquetTestFile, csvTestFile);
+
+      final File canonicName = new File(csvFile + ".canonic");
+     /*
+      if( canonicName.exists()) {
+        Utils.verify(canonicName, csvTestFile);
+      } else {
+        Utils.verify(csvFile, csvTestFile);
+      }
+     */ 
+      // from binary csv encoding
+      parquetTestFile = Utils.getParquetOutputFile(filename, "binary", true);
+      //ConvertUtils.convertCsvToParquet(csvFile, parquetTestFile, true);
+     
+      csvTestFile = Utils.getCsvTestFile(filename, "binary", true);
+      //ConvertUtils.convertParquetToCSV(parquetTestFile, csvTestFile);
+      
+      if( canonicName.exists()) {
+        // Utils.verify(canonicName, csvTestFile);
+      } else {
+        // Utils.verify(csvFile, csvTestFile);
+      }
+      // types
+      String[] compatibleVersions = Utils.getAllPreviousVersionDirs();
+      String version = "1.9.0"; // compatibleVersions[0];
+      String prefix = Utils.getFileNamePrefix(csvFile);
+      //File versionOrcFile = Utils.getRefFile(prefix, version, "plain", true, ConvertToolBase.Format.PARQUET, null);
+
+      File testMeta = Utils.getMetaTestFile(prefix, version, true, ConvertToolBase.Format.PARQUET);
+      //File refMeta = Utils.getMetaRefFile(prefix, version,null,  ConvertToolBase.Format.PARQUET);
+
+      StringRedirector redir = null;
+      try {
+        redir = new StringRedirector(StringRedirector.outputStream(testMeta));
+        String[] args = {  "-Dcsvformat=binary", "convert",  csvFile.toString(),
+            "-S" , "|", "-o" ,  parquetTestFile.toString()  };
+        Driver.main(args);
+      } catch (Exception e) {
+        e.printStackTrace();
+        System.err.println(e);
+        Assert.fail("exception" + e);
+        throw e;
+      } finally {
+        redir.restore();
+      }
+      csvTestFile = Utils.getCsvTestFile(filename, "binary", true);
+      ConvertUtils.convertParquetToCSV(parquetTestFile, csvTestFile);
+      if( canonicName.exists()) {
+        Utils.verify(canonicName, csvTestFile);
+      } else {
+        Utils.verify(csvFile, csvTestFile);
+      }      
+    }
+  }
+
+  
+  
   @Test
   public void testParquetBackwardsCompatibility() throws IOException {
     // read all versions of parquet files and convert them into csv

@@ -87,7 +87,7 @@ public class ConvertToolParquet extends ConvertToolBase {
       System.err.println("Processing " + file.getPath());
       java.io.File csvFile = new java.io.File(file.getPath().toString());
       ConvertUtils.convertCsvToParquet(csvFile, new java.io.File(this.outFileName), this.schemaString,
-          conf.getBoolean("parquet.enabledictionary", false), this.csvSeparatorAsString, this.conf);// ,
+          conf.getBoolean("parquet.enabledictionary", false), this.csvOptions, this.conf);// ,
     }
   }
 

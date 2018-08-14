@@ -147,7 +147,7 @@ public class Driver {
     DriverOptions options = new DriverOptions(args);
 
     if (options.command == null) {
-      System.err.println("CSV to parquet converter");
+      System.err.println("CSV to parquet converter V0.0.3");
       System.err.println();
       System.err.println("usage: java -jar csv2parquet*.jar [--help]" + " [--define X=Y] <command> <args>");
       System.err.println();

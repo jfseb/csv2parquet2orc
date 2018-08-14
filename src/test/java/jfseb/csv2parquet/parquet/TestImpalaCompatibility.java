@@ -41,7 +41,9 @@ public class TestImpalaCompatibility {
         File parquetFile = null;
         try {
         parquetFile = Utils.getParquetImpalaFile(prefix, impalaVersion);
-        } catch (Exception e){continue;}
+        } catch (Exception e){
+          continue;
+        }
         File csvOutputFile = Utils.getCsvTestFile(prefix, "impala", true);
         ConvertUtils.convertParquetToCSV(parquetFile, csvOutputFile);
         Utils.verify(originalCsv, csvOutputFile, false);
