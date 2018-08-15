@@ -1,6 +1,7 @@
 
 package jfseb.csv2parquet.convert.utils;
 
+import java.io.Console;
 import java.sql.Date;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -56,16 +57,26 @@ public class CSV2ParquetTimestampUtils {
  static final long DayInSeconds = 24*60*60;
  static final long ShiftDate = 0; // DayInSeconds / 2;
  static final long JulianNanosOffsetSeconds = NanosFromMidnight ? 0 : DayInSeconds/2; // DayInSeconds / 2; // or DayInSeconds / 2;
- static final double OFFSETJULIAN = 2440587.0 + (JulianDateAtNoon ? 0.5: 0.0); // WE DON'T use 0.5 as some claim that impala does not use it !? .5;
+ static final long OFFSETJULIAN = 2440587; // .0 + (JulianDateAtNoon ? 0.5: 0.0); // WE DON'T use 0.5 as some claim that impala does not use it !? .5;
   
+ /*
  static double getJulianFromUnix(double unixSecs) {
-    return ( (unixSecs / 86400.0) + OFFSETJULIAN );
- }
+    return ( (unixSecs + 86400 * juliandays) + OFFSETJULIAN );
+ }*/
 
   static int getJulianDaysFromUnix(long unixSecs) {
+     long secsjulian = unixSecs + OFFSETJULIAN * DayInSeconds; 
+     return (int) (secsjulian / DayInSeconds);
+  }
+  /*
+    (juliandays - OFFSETJULIAN)*86400 + nanos / 1000000;
+    -86400 +
+    0.. 86400 -> 1
+    return unixSecs 86400
     double julianDaysDouble = getJulianFromUnix(unixSecs);
     return Double.valueOf(Math.floor(julianDaysDouble)).intValue();
   }
+  */
 
   static long getJulianTimeInNanosFromUnix(long unixSecs, long days) 
   {
@@ -73,21 +84,19 @@ public class CSV2ParquetTimestampUtils {
     return remainder * 1000 * 1000 * 1000;
   }
 
+  /*
   static long getJulianTimeInNanosFromUnix2(long unixSecs) {
     double frac = getJulianFromUnix(unixSecs) - getJulianDaysFromUnix(unixSecs);
     frac *= 86400.0 * 1000;
     return Double.valueOf(frac).longValue();
-  }
+  }*/
 
   public static String binaryToDateTimeString(Binary int96b) {
     NanoTime nt = NanoTime.fromBinary(int96b);
     int day = nt.getJulianDay();
     long nanos = nt.getTimeOfDayNanos();
-    long unixTimeSecs = day * DayInSeconds - (long) ( OFFSETJULIAN*DayInSeconds );
-    unixTimeSecs += ( nanos / (1000.0* 1000.0 *1000.0) + 1.0*JulianNanosOffsetSeconds );
-    
-    long unixTime = unixTimeSecs * 1000l;
-    Date dt = new Date(unixTime);
+    long unixTimeSecs = (day - OFFSETJULIAN) * DayInSeconds + nanos/ (1000*1000*1000);
+    Date dt = new Date(unixTimeSecs*1000); // milliseconds!
     DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); // , Locale.ENGLISH);
     df.setTimeZone(TimeZone.getTimeZone("UTC"));
     return df.format(dt);
@@ -151,19 +160,25 @@ public class CSV2ParquetTimestampUtils {
   }
 
   public static long parseTimeMicros(String val, boolean strict) throws ParseException {
-    DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); // , Locale.ENGLISH);
-    df.setTimeZone(TimeZone.getTimeZone("UTC"));
+    DateFormat df = new SimpleDateFormat("zzz yyyy-MM-dd HH:mm:ss"); // , Locale.ENGLISH);
     java.util.Date result;
+    int micros = 0;
     try {
-      String dateval = val;
+      String dateval = "GMT 1970-01-01 "+ val;
       ParsePosition pp = new ParsePosition(0);
       result = df.parse(dateval, pp);
       if (pp.getErrorIndex() >= 0) {
         throw new ParseException("error parsing" + val, pp.getErrorIndex());
       }
-      // int index = pp.getIndex();
-      // int micros = Integer.parseInt(dateval.substring(pp.getIndex()));
-      return (result.getTime() * 1000l);
+      int index = pp.getIndex();
+      if (index < dateval.length() && dateval.charAt(index) == '.') {
+        try {
+          micros = Integer.parseInt(dateval.substring(index+1));
+        } catch(NumberFormatException e)
+        { // silenlty absorb
+        }
+      }
+      return (result.getTime() * 1000l + micros);
     } catch (ParseException e) {
       if (strict) {
         throw e;
@@ -180,20 +195,22 @@ public class CSV2ParquetTimestampUtils {
     }
   }
 
-  public static int parseTimeMicrosSloppy(String val) throws ParseException {
-    DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); // , Locale.ENGLISH);
-    df.setTimeZone(TimeZone.getTimeZone("UTC"));
+  public static long parseTimeMicrosSloppy(String val) throws ParseException {
+    DateFormat df = new SimpleDateFormat("zzz yyyy-MM-dd HH:mm:ss"); // , Locale.ENGLISH);
     java.util.Date result;
-    result = df.parse("1970-01-01 " + val);
-    return (int) result.getTime() * 1000;
+    result = df.parse("GMT 1970-01-01 " + val); // val);
+    long u = result.getTimezoneOffset();
+    long tm = result.getTime() * 1000;
+    return (long) tm;
   }
 
   public static int parseTimeMillisInt(String val, boolean b) throws ParseException {
-    DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS"); // , Locale.ENGLISH);
-    df.setTimeZone(TimeZone.getTimeZone("UTC"));
+    DateFormat df = new SimpleDateFormat("zzz yyyy-MM-dd HH:mm:ss.SSS"); // , Locale.ENGLISH);
     java.util.Date result;
     try {
-      result = df.parse("1970-01-01 " + val);
+      result = df.parse("GMT 1970-01-01 " + val);
+      long a = result.getTime();
+      int bdd =(int) a;
       return (int) result.getTime();
     } catch (ParseException e) {
       if (b)
