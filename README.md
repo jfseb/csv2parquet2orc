@@ -56,12 +56,13 @@ java -jar csv2parquet2orc-0.0.2-*   convert  -D orc.compression=ZIP   input.csv 
 | --- | --- | --- | --- |
 | explicit schema file spec | -s abc.schema.orc | yes | yes |
 | Skip header lines | -H 1 | yes | yes |
-| Separator | -S '|' | yes | yes | 
-| Binary 0x12EFx0 |  -Dcsvformat=binary | yes | no |
+| Separator | -S '\|' | yes | yes | 
+| Binary 0x12EFx0 |  -Dcsvformat=binary | yes | yes(*) |
 
 
 Note: -D csvformat=binary shall be entered before the command 
 
+Note: Timestamp and decimal writing via semi-typed classes or orc reader which may restrict byte range.
 
 ## other commands
 
