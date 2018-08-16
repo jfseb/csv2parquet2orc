@@ -21,11 +21,13 @@ schema <orc|parquet-file>   [-x|--extended]
 java -jar csv2parquet2orc-0.0.4-*   convert  -D parquet.compression=GZIP   input.csv  -s input.csv.schema -o out.parquet 
 
 options: 
-   parquet.dictionary  true|false
--D parquet.DEFAULT_BLOCK_SIZE <int> 
--D parquet.DEFAULT_PAGE_SIZE <int>
+ *  parquet.dictionary  true|false
+ * -D parquet.DEFAULT_BLOCK_SIZE <int> 
+ * -D parquet.DEFAULT_PAGE_SIZE <int>
 
--D csvformat=binary   reads columns matching the pattern 0x([A-Fa-f0-9][A-Fa-f0-9])+x0,
+ * -S '|' csv column separator
+ 
+ * -D csvformat=binary   reads columns matching the pattern /0x([A-Fa-f0-9][A-Fa-f0-9])+x0/,
    e.g.  |0xFFEFx0|0xffefx0|0x41x0|
    for the latter format, all columns starting with 0x and ending with x0  (e.g. 0xFFEFx0 
    and containing an even number of contiguous hexadecimal characters  will be interpreted as 
@@ -40,7 +42,18 @@ options:
 java -jar csv2parquet2orc-0.0.2-*   convert  -D orc.compression=ZIP   input.csv  -s input.csv.schema -o out.orc 
 
 
+## other commands
 
+### --help output help
+
+### meta output file metadata
+
+java -jar csv2parquet2orc-0.0.2-*   meta  abc.parquet
+
+java -jar csv2parquet2orc-0.0.2-*   meta  abc.orc
+
+
+# notes
 
 The project is built on parquet 1.9.0 
 and orc 1.4 
