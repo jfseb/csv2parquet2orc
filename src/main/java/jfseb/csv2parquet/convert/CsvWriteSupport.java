@@ -66,10 +66,6 @@ public class CsvWriteSupport extends WriteSupport<List<String>> {
 
   @Override
   public void write(List<String> values) {
-    if(this.readAsBinary) {
-      writeBinary(values);
-      return;
-    }
     if (values.size() != cols.size()) {
       throw new ParquetEncodingException("Invalid input data. Expecting " + cols.size() + " columns. Input had "
           + values.size() + " columns (" + cols + ") : " + values);
@@ -82,75 +78,110 @@ public class CsvWriteSupport extends WriteSupport<List<String>> {
       if (val.length() > 0) {
         recordConsumer.startField(cols.get(i).getPath()[0], i);
         try {
-
+          ParseHexRec.ParsedRec rec = null;
+          if (this.readAsBinary) {
+            rec = ParseHexRec.parse(val);
+          }
           Type primtype = schema.getFields().get(i);
           switch (cols.get(i).getType()) {
           case BOOLEAN:
-            recordConsumer.addBoolean(Boolean.parseBoolean(val));
+            if (rec != null) {
+              recordConsumer.addBoolean(rec.asBool);
+            } else {
+              recordConsumer.addBoolean(Boolean.parseBoolean(val));
+            }
             break;
           case INT96:
-            try {
-              DateFormat df = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss"); // , Locale.ENGLISH);
-              java.util.Date result = df.parse(val);
-              NanoTime nt = CSV2ParquetTimestampUtils.fromDateTimeString(val);
-              // try a byte array a la
-              // https://www.programcreek.com/java-api-examples/index.php?source_dir=presto-master/presto-hive/src/test/java/com/facebook/presto/hive/parquet/TestParquetTimestampUtils.java
-              // todo : parse millis
+            if (rec != null) {
+              Binary bin = rec.getBinary(96 / 8);
+              recordConsumer.addBinary(bin);
+            } else {
+              try {
+                DateFormat df = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss"); // , Locale.ENGLISH);
+                java.util.Date result = df.parse(val);
+                NanoTime nt = CSV2ParquetTimestampUtils.fromDateTimeString(val);
+                // try a byte array a la
+                // https://www.programcreek.com/java-api-examples/index.php?source_dir=presto-master/presto-hive/src/test/java/com/facebook/presto/hive/parquet/TestParquetTimestampUtils.java
+                // todo : parse millis
 
-              // org.apache.hadoop.hive.ql.io.parquet.timestamp.NanoTimeUtils;
-              // ts.getTime();
-              // nt.getBinary();
-              // Timestamp timestamp = Timestamp.valueOf(val); // timestampString);
-              // (( Binary timestampBytes = NanoTimeUtils.getNanoTime(timestamp,
-              // false).toBinary();
-              // long decodedTimestampMillis = getTimestampMillis(timestampBytes);
-              // assertEquals(decodedTimestampMillis, timestamp.getTime());
-              // Int96Value i96 = new Int96Value(Binar));
-              recordConsumer.addBinary(nt.toBinary());
-              // recordConsumer.addLong(result.getTime());
-            } catch (java.text.ParseException ex) {
-              recordConsumer.addLong(Long.parseLong(val));
+                // org.apache.hadoop.hive.ql.io.parquet.timestamp.NanoTimeUtils;
+                // ts.getTime();
+                // nt.getBinary();
+                // Timestamp timestamp = Timestamp.valueOf(val); // timestampString);
+                // (( Binary timestampBytes = NanoTimeUtils.getNanoTime(timestamp,
+                // false).toBinary();
+                // long decodedTimestampMillis = getTimestampMillis(timestampBytes);
+                // assertEquals(decodedTimestampMillis, timestamp.getTime());
+                // Int96Value i96 = new Int96Value(Binar));
+                recordConsumer.addBinary(nt.toBinary());
+                // recordConsumer.addLong(result.getTime());
+              } catch (java.text.ParseException ex) {
+                recordConsumer.addLong(Long.parseLong(val));
+              }
             }
             break;
           case FLOAT:
-            recordConsumer.addFloat(Float.parseFloat(val));
+            if (rec != null) {
+              recordConsumer.addFloat(rec.asFloat);
+            } else {
+              recordConsumer.addFloat(Float.parseFloat(val));
+            }
             break;
           case DOUBLE:
-            recordConsumer.addDouble(Double.parseDouble(val));
+            if (rec != null) {
+              recordConsumer.addDouble(rec.asDouble);
+            } else {
+              recordConsumer.addDouble(Double.parseDouble(val));
+            }
             break;
           case INT32:
-            if (primtype.getOriginalType() == OriginalType.DATE) {
-              val = CSV2ParquetTimestampUtils.parseDateOrIntSloppy(val);
-            } else if (primtype.getOriginalType() == OriginalType.TIME_MILLIS) {
-              val = Integer.valueOf(CSV2ParquetTimestampUtils.parseTimeMillisOrInt(val)).toString();
+            if (rec != null) {
+              recordConsumer.addInteger(rec.asInt);
+            } else {
+              if (primtype.getOriginalType() == OriginalType.DATE) {
+                val = CSV2ParquetTimestampUtils.parseDateOrIntSloppy(val);
+              } else if (primtype.getOriginalType() == OriginalType.TIME_MILLIS) {
+                val = Integer.valueOf(CSV2ParquetTimestampUtils.parseTimeMillisOrInt(val)).toString();
+              }
+              recordConsumer.addInteger(Integer.parseInt(val));
             }
-            recordConsumer.addInteger(Integer.parseInt(val));
             break;
           case INT64:
-            if (primtype.getOriginalType() == OriginalType.TIME_MICROS) {
-              try {
-                long valmicros = CSV2ParquetTimestampUtils.parseTimeMicros(val, false);
-                recordConsumer.addLong(valmicros);
-              } catch (ParseException e) {
+            if (rec != null) {
+              recordConsumer.addLong(rec.asLong);
+            } else {
+              if (primtype.getOriginalType() == OriginalType.TIME_MICROS) {
+                try {
+                  long valmicros = CSV2ParquetTimestampUtils.parseTimeMicros(val, false);
+                  recordConsumer.addLong(valmicros);
+                } catch (ParseException e) {
+                  recordConsumer.addLong(Long.parseLong(val));
+                }
+              } /*
+                 * try { DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); // ,
+                 * Locale.ENGLISH); java.util.Date result = df.parse(val);
+                 * recordConsumer.addLong(result.getTime()); } catch (java.text.ParseException
+                 * ex) { recordConsumer.addLong(Long.parseLong(val)); }
+                 */
+              else {
                 recordConsumer.addLong(Long.parseLong(val));
               }
-            } /*
-            try {
-              DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); // , Locale.ENGLISH);
-              java.util.Date result = df.parse(val);
-              recordConsumer.addLong(result.getTime());
-            } catch (java.text.ParseException ex) {
-              recordConsumer.addLong(Long.parseLong(val));
-            } */
-            else {
-              recordConsumer.addLong(Long.parseLong(val));
             }
             break;
           case BINARY:
-            recordConsumer.addBinary(stringToBinary(val));
+            if (rec != null) {
+              recordConsumer.addBinary(rec.binary);
+            } else {
+              recordConsumer.addBinary(stringToBinary(val));
+            }
             break;
           case FIXED_LEN_BYTE_ARRAY:
-            recordConsumer.addBinary(stringToBinary(val));
+            if (rec != null) {
+              recordConsumer.addBinary(rec.binary);
+            } else {
+              recordConsumer.addBinary(stringToBinary(val));
+            }
+            break;
           default:
             throw new ParquetEncodingException("Unsupported column type: " + cols.get(i).getType());
           }
@@ -164,7 +195,6 @@ public class CsvWriteSupport extends WriteSupport<List<String>> {
     recordConsumer.endMessage();
   }
 
-
   public void writeBinary(List<String> values) {
     if (values.size() != cols.size()) {
       throw new ParquetEncodingException("Invalid input data. Expecting " + cols.size() + " columns. Input had "
@@ -177,7 +207,7 @@ public class CsvWriteSupport extends WriteSupport<List<String>> {
       // val.length() == 0 indicates a NULL value.
       if (val.length() > 0) {
         ParseHexRec.ParsedRec rec = ParseHexRec.parse(val);
-        
+
         recordConsumer.startField(cols.get(i).getPath()[0], i);
         try {
           Type primtype = schema.getFields().get(i);
@@ -186,11 +216,11 @@ public class CsvWriteSupport extends WriteSupport<List<String>> {
             recordConsumer.addBoolean(rec.asBool);
             break;
           case INT96:
-              if(rec.binary.length() < 96/8) {
-                throw new IllegalArgumentException(" binary too short for int96");
-              }
-              Binary bin = rec.binary.slice(rec.binary.length() - 96/8, rec.binary.length());
-              recordConsumer.addBinary(bin);
+            if (rec.binary.length() < 96 / 8) {
+              throw new IllegalArgumentException(" binary too short for int96");
+            }
+            Binary bin = rec.binary.slice(rec.binary.length() - 96 / 8, rec.binary.length());
+            recordConsumer.addBinary(bin);
             break;
           case FLOAT:
             recordConsumer.addFloat(rec.asFloat);
@@ -221,8 +251,7 @@ public class CsvWriteSupport extends WriteSupport<List<String>> {
     }
     recordConsumer.endMessage();
   }
-  
-  
+
   private Binary stringToBinary(Object value) {
     return Binary.fromString(value.toString());
   }

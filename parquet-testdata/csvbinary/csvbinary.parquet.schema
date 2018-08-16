@@ -1,1 +1,1 @@
-message m {  OPTIONAL int32 d32 (DATE);  OPTIONAL binary c3 (UTF8);  OPTIONAL int32 ui16 (UINT_32);  OPTIONAL int32 i32;  OPTIONAL int32 t64_millis  (TIME_MILLIS) ;  OPTIONAL int64 t_micros (TIME_MICROS); }
+message m {  OPTIONAL int32 d32 (DATE);  OPTIONAL binary c3 (UTF8);  OPTIONAL int32 ui16 (UINT_32);  OPTIONAL int32 i32;  OPTIONAL int32 t64_millis  (TIME_MILLIS) ;  OPTIONAL int64 t_micros (TIME_MICROS);  OPTIONAL int64 plain;  OPTIONAL binary c4 (UTF8); }

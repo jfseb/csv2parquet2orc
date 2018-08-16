@@ -25,7 +25,7 @@ File Statistics:
   Column 6: count: 3 hasNull: false min: 2017-03-02 00:13:30.0 max: 2017-07-07 23:45:30.0
 
 Stripes:
-  Stripe: offset: 3 data: 86 rows: 3 tail: 106 index: 214
+  Stripe: offset: 3 data: 86 rows: 3 tail: 92 index: 214
     Stream: column 0 section ROW_INDEX start: 3 length 11
     Stream: column 1 section ROW_INDEX start: 14 length 24
     Stream: column 2 section ROW_INDEX start: 38 length 39
@@ -50,7 +50,7 @@ Stripes:
     Encoding column 5: DIRECT
     Encoding column 6: DIRECT_V2
 
-File length: 800 bytes
+File length: 786 bytes
 Padding length: 0 bytes
 Padding ratio: 0%
 ________________________________________________________________________________________________________________________
