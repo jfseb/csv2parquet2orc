@@ -3,6 +3,12 @@
 CSV 2 Parquet and CSV 2 ORC converter 
 (blend of individual tools with aligned interface) 
 
+- allows binary notation of input to force specific values into the parquet/orc file for test purposes
+(e.g. various float/double NAN, "out of range" int96 julian dates, other dates/timestamp, broken or 
+ wrong encoded unicode charaters etc.)
+ 
+ (caveats: The orc Timestamp column reader accepts a java.sql.Timestamp, which may restrict range).  
+
 #build 
 
 mvn clean compile assembly:single
@@ -27,7 +33,7 @@ options:
 
  * -S '|' csv column separator
  
- * -D csvformat=binary   reads columns matching the pattern /0x([A-Fa-f0-9][A-Fa-f0-9])+x0/,
+ * -D csvformat=binary   reads columns matching the pattern /0x(\[A-Fa-f0-9\]\[A-Fa-f0-9\])+x0/,
    e.g.  |0xFFEFx0|0xffefx0|0x41x0|
    for the latter format, all columns starting with 0x and ending with x0  (e.g. 0xFFEFx0 
    and containing an even number of contiguous hexadecimal characters  will be interpreted as 
@@ -40,6 +46,21 @@ options:
 ## csv to orc 
 
 java -jar csv2parquet2orc-0.0.2-*   convert  -D orc.compression=ZIP   input.csv  -s input.csv.schema -o out.orc 
+
+
+## csv options support
+
+
+
+| option | option example | parquet | orc |
+| --- | --- | --- | --- |
+| explicit schema file spec | -s abc.schema.orc | yes | yes |
+| Skip header lines | -H 1 | yes | yes |
+| Separator | -S '|' | yes | yes | 
+| Binary 0x12EFx0 |  -Dcsvformat=binary | yes | no |
+
+
+Note: -D csvformat=binary shall be entered before the command 
 
 
 ## other commands

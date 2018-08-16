@@ -23,10 +23,13 @@ import org.threeten.bp.temporal.TemporalAccessor;
 
 import com.opencsv.CSVReader;
 
+import jfseb.csv2parquet.convert.ConvertToolBase.CSVOptions;
 import jfseb.csv2parquet.convert.utils.CSV2ParquetTimestampUtils;
+import jfseb.csv2parquet.utils.ParseHexRec;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.text.ParseException;
@@ -44,6 +47,8 @@ public class CsvReader implements RecordReader {
   private final long totalSize;
 
   public TypeDescription schema;
+
+  private final boolean csvFormatBinary;
 
   /**
    * Create a CSV reader
@@ -70,11 +75,13 @@ public class CsvReader implements RecordReader {
    * @throws IOException
    */
   public CsvReader(java.io.Reader reader, FSDataInputStream input, long size, TypeDescription schema,
-      char separatorChar, char quoteChar, char escapeChar, int headerLines, String nullString) throws IOException {
+      CSVOptions csvoptions) throws IOException {
     this.underlying = input;
     this.schema = schema;
-    this.reader = new CSVReader(reader, separatorChar, quoteChar, escapeChar, headerLines);
-    this.nullString = nullString;
+    this.reader = new CSVReader(reader, csvoptions.csvSeparatorAsChar, csvoptions.csvQuote, csvoptions.csvEscape,
+        csvoptions.csvHeaderLines);
+    this.nullString = csvoptions.csvNullString;
+    this.csvFormatBinary = csvoptions.csvFormatBinary;
     this.totalSize = size;
     IntWritable nextColumn = new IntWritable(0);
     this.converter = buildConverter(nextColumn, schema);
@@ -153,6 +160,10 @@ public class CsvReader implements RecordReader {
         column.noNulls = false;
         column.isNull[row] = true;
       } else {
+        ParseHexRec.ParsedRec rec = ParseHexRec.parse(values[offset]);
+        if (rec != null && CsvReader.this.csvFormatBinary) {
+          ((LongColumnVector) column).vector[row] = (rec.asLong != 0) ? 1 : 0;
+        }
         if (values[offset].equalsIgnoreCase("true") || values[offset].equalsIgnoreCase("t")
             || values[offset].equals("1")) {
           ((LongColumnVector) column).vector[row] = 1;
@@ -174,35 +185,39 @@ public class CsvReader implements RecordReader {
         column.noNulls = false;
         column.isNull[row] = true;
       } else {
-        try {
-          String val = null;
+        ParseHexRec.ParsedRec rec = ParseHexRec.parse(values[offset]);
+        if (rec != null && CsvReader.this.csvFormatBinary) {
+          ((LongColumnVector) column).vector[row] = rec.asLong;
+        } else {
           try {
-            val = CSV2ParquetTimestampUtils.parseDateOrIntStrict(values[offset]);
-          } catch (NumberFormatException e) {
-  
-          }
-          if (val == null) {
+            String val = null;
             try {
-              val = Long.valueOf(CSV2ParquetTimestampUtils.parseTimeMicros(values[offset], true)).toString();
-            } catch (ParseException e) {
+              val = CSV2ParquetTimestampUtils.parseDateOrIntStrict(values[offset]);
+            } catch (NumberFormatException e) {
+
             }
-          }
-          if (val == null) {
-            try {
-              val = Integer.valueOf(CSV2ParquetTimestampUtils.parseTimeMillisInt(values[offset], false)).toString();
-            } catch (ParseException p) {
+            if (val == null) {
+              try {
+                val = Long.valueOf(CSV2ParquetTimestampUtils.parseTimeMicros(values[offset], true)).toString();
+              } catch (ParseException e) {
+              }
             }
+            if (val == null) {
+              try {
+                val = Integer.valueOf(CSV2ParquetTimestampUtils.parseTimeMillisInt(values[offset], false)).toString();
+              } catch (ParseException p) {
+              }
+            }
+            if (val == null) {
+              val = values[offset];
+            }
+            ((LongColumnVector) column).vector[row] = Long.parseLong(val);
+          } catch (NumberFormatException ex) {
+            System.err.println("Error in row:" + row + " column:" + offset + " expected parseable " + values[offset]);
+            System.err.println(" type expected is : " + CsvReader.this.schema.getFieldNames().get(offset) + " "
+                + CsvReader.this.schema.getChildren().get(offset).toString());
+            throw ex;
           }
-          if (val == null) {
-            val = values[offset];
-          }
-          ((LongColumnVector) column).vector[row] = Long.parseLong(val);
-        } catch(NumberFormatException ex) {
-          System.err.println("Error in row:" + row + " column:" + offset + " expected parseable " + values[offset]);
-          System.err.println(" type expected is : "+ 
-              CsvReader.this.schema.getFieldNames().get(offset)+ " " + 
-              CsvReader.this.schema.getChildren().get(offset).toString()); 
-          throw ex; 
         }
       }
     }
@@ -219,8 +234,14 @@ public class CsvReader implements RecordReader {
         column.noNulls = false;
         column.isNull[row] = true;
       } else {
-        String val = CSV2ParquetTimestampUtils.parseDateOrIntSloppy(values[offset]);
-        ((LongColumnVector) column).vector[row] = Long.parseLong(val);
+        ParseHexRec.ParsedRec rec = ParseHexRec.parse(values[offset]);
+        if (rec != null && CsvReader.this.csvFormatBinary) {
+          ((LongColumnVector) column).vector[row] = rec.asLong;
+        } else {
+          String val = CSV2ParquetTimestampUtils.parseDateOrIntSloppy(values[offset]);
+          ((LongColumnVector) column).vector[row] = Long.parseLong(val);
+        }
+
       }
     }
   }
@@ -236,14 +257,25 @@ public class CsvReader implements RecordReader {
         column.noNulls = false;
         column.isNull[row] = true;
       } else {
-        ((DoubleColumnVector) column).vector[row] = Double.parseDouble(values[offset]);
+        ParseHexRec.ParsedRec rec = ParseHexRec.parse(values[offset]);
+        if (rec != null && CsvReader.this.csvFormatBinary) {
+          if (rec.binary.length() == 4) {
+            ((DoubleColumnVector) column).vector[row] = rec.asFloat;
+          } else {
+            ((DoubleColumnVector) column).vector[row] = rec.asDouble;
+          }
+        } else {
+          ((DoubleColumnVector) column).vector[row] = Double.parseDouble(values[offset]);
+        }
       }
     }
   }
 
   class DecimalConverter extends ConverterImpl {
-    DecimalConverter(IntWritable offset) {
+    private final int scale;
+    DecimalConverter(IntWritable offset, int scale) {
       super(offset);
+      this.scale = scale;
     }
 
     @Override
@@ -252,7 +284,21 @@ public class CsvReader implements RecordReader {
         column.noNulls = false;
         column.isNull[row] = true;
       } else {
-        ((DecimalColumnVector) column).vector[row].set(new HiveDecimalWritable(values[offset]));
+        ParseHexRec.ParsedRec rec = ParseHexRec.parse(values[offset]);
+        if (rec != null && CsvReader.this.csvFormatBinary) {
+          if (rec.binary.length() <= 8) {
+            HiveDecimalWritable hdw = new HiveDecimalWritable();
+            hdw.setFromLongAndScale(rec.asLong, scale);
+            ((DecimalColumnVector) column).vector[row].set(hdw);
+          } else {
+            BigInteger bi = new BigInteger(rec.binary.getBytes());// (bytes, row, length); = rec.asDouble;
+            HiveDecimalWritable hdw = new HiveDecimalWritable();
+            hdw.setFromBigIntegerBytesAndScale(bi.toByteArray(), scale);
+            ((DecimalColumnVector) column).vector[row].set(hdw);
+          }
+        } else {
+          ((DecimalColumnVector) column).vector[row].set(new HiveDecimalWritable(values[offset]));
+        }
       }
     }
   }
@@ -268,8 +314,14 @@ public class CsvReader implements RecordReader {
         column.noNulls = false;
         column.isNull[row] = true;
       } else {
-        byte[] value = values[offset].getBytes(StandardCharsets.UTF_8);
-        ((BytesColumnVector) column).setRef(row, value, 0, value.length);
+        ParseHexRec.ParsedRec rec = ParseHexRec.parse(values[offset]);
+        if (rec != null && CsvReader.this.csvFormatBinary) {
+          byte[] value = rec.binary.getBytes();
+          ((BytesColumnVector) column).setRef(row, value, 0, value.length);
+        } else {
+          byte[] value = values[offset].getBytes(StandardCharsets.UTF_8);
+          ((BytesColumnVector) column).setRef(row, value, 0, value.length);
+        }
       }
     }
   }
@@ -286,25 +338,31 @@ public class CsvReader implements RecordReader {
         column.isNull[row] = true;
       } else {
         TimestampColumnVector vector = (TimestampColumnVector) column;
-        TemporalAccessor temporalAccessor = null;
-        try {
-          temporalAccessor = DATE_TIME_FORMATTER.parseBest(values[offset], ZonedDateTime.FROM,
-            LocalDateTime.FROM);
-        } catch(DateTimeParseException ex) {
-          System.err.println("Error in row:" + row + " column:" + offset + " expected Timestamp parseable " + values[offset]);
-          System.err.println(" type expected is : "+ 
-              CsvReader.this.schema.getFieldNames().get(offset)+ " " + 
-              CsvReader.this.schema.getChildren().get(offset).toString()); 
-          throw ex; 
-        }
-        if (temporalAccessor instanceof ZonedDateTime) {
-          vector.set(row, new Timestamp(((ZonedDateTime) temporalAccessor).toEpochSecond() * 1000L));
-        } else if (temporalAccessor instanceof LocalDateTime) {
-          vector.set(row,
-              new Timestamp(((LocalDateTime) temporalAccessor).atZone(ZoneId.systemDefault()).toEpochSecond() * 1000L));
+
+        ParseHexRec.ParsedRec rec = ParseHexRec.parse(values[offset]);
+        if (rec != null && CsvReader.this.csvFormatBinary) {
+          Timestamp timestamp = new Timestamp(rec.asLong);
+          vector.set(row, timestamp);
         } else {
-          column.noNulls = false;
-          column.isNull[row] = true;
+          TemporalAccessor temporalAccessor = null;
+          try {
+            temporalAccessor = DATE_TIME_FORMATTER.parseBest(values[offset], ZonedDateTime.FROM, LocalDateTime.FROM);
+          } catch (DateTimeParseException ex) {
+            System.err.println(
+                "Error in row:" + row + " column:" + offset + " expected Timestamp parseable " + values[offset]);
+            System.err.println(" type expected is : " + CsvReader.this.schema.getFieldNames().get(offset) + " "
+                + CsvReader.this.schema.getChildren().get(offset).toString());
+            throw ex;
+          }
+          if (temporalAccessor instanceof ZonedDateTime) {
+            vector.set(row, new Timestamp(((ZonedDateTime) temporalAccessor).toEpochSecond() * 1000L));
+          } else if (temporalAccessor instanceof LocalDateTime) {
+            vector.set(row, new Timestamp(
+                ((LocalDateTime) temporalAccessor).atZone(ZoneId.systemDefault()).toEpochSecond() * 1000L));
+          } else {
+            column.noNulls = false;
+            column.isNull[row] = true;
+          }
         }
       }
     }
@@ -352,7 +410,7 @@ public class CsvReader implements RecordReader {
     case DOUBLE:
       return new DoubleConverter(startOffset);
     case DECIMAL:
-      return new DecimalConverter(startOffset);
+      return new DecimalConverter(startOffset, schema.getScale());
     case BINARY:
     case STRING:
     case CHAR:

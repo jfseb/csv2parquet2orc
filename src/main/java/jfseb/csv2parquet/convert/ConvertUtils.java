@@ -144,18 +144,20 @@ public class ConvertUtils {
     int lineNumber = 0;
     try {
       while ((line = br.readLine()) != null) {
-        String[] fields = line.split(Pattern.quote(CSV_DELIMITER));
-
-        int cols = schema.getColumns().size();
-        ArrayList<String> lst = new ArrayList<String>(Arrays.asList(fields)); // Arrays.asList(fields);
-        while (lst.size() < cols) {
-          lst.add("");
+        if( lineNumber >= csvOptions.csvHeaderLines) {
+          String[] fields = line.split(Pattern.quote(CSV_DELIMITER));
+  
+          int cols = schema.getColumns().size();
+          ArrayList<String> lst = new ArrayList<String>(Arrays.asList(fields)); // Arrays.asList(fields);
+          while (lst.size() < cols) {
+            lst.add("");
+          }
+          while (lst.size() > cols) {
+            lst.remove(lst.size() - 1);
+          }
+          writer.write(lst);
         }
-        while (lst.size() > cols) {
-          lst.remove(lst.size() - 1);
-        }
-        writer.write(lst);
-        ++lineNumber;
+        ++lineNumber;        
       }
 
       writer.close();

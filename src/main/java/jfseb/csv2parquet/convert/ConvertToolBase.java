@@ -127,8 +127,7 @@ public class ConvertToolBase {
       }
       case CSV: {
         FSDataInputStream underlying = getFilesystem().open(getPath());
-        return new CsvReader(getReader(underlying), underlying, size, schema, csvOptions.csvSeparatorAsChar, csvOptions.csvQuote, csvOptions.csvEscape,
-            csvOptions.csvHeaderLines, csvOptions.csvNullString);
+        return new CsvReader(getReader(underlying), underlying, size, schema, csvOptions);
       }
       default:
         throw new IllegalArgumentException("Unhandled format " + format + " for " + getPath());
