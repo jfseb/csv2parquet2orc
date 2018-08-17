@@ -15,13 +15,18 @@
  */
 package jfseb.csv2parquet.convert;
 
+import java.math.BigDecimal;
 import java.nio.ByteOrder;
 import java.sql.Timestamp;
 import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.text.ParseException;
+import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.ql.util.TimestampUtils;
@@ -77,7 +82,7 @@ public class CsvWriteSupport extends WriteSupport<List<String>> {
     recordConsumer.startMessage();
     for (int i = 0; i < cols.size(); ++i) {
       String val = values.get(i);
-      
+
       try {
         // val.length() == 0 indicates a NULL value.
         if (val.length() > 0) {
@@ -87,6 +92,7 @@ public class CsvWriteSupport extends WriteSupport<List<String>> {
             if (this.readAsBinary) {
               rec = ParseHexRec.parse(val);
             }
+            Type t = schema.getFields().get(i);
             Type primtype = schema.getFields().get(i);
             switch (cols.get(i).getType()) {
             case BOOLEAN:
@@ -98,10 +104,10 @@ public class CsvWriteSupport extends WriteSupport<List<String>> {
               break;
             case INT96:
               if (rec != null) {
-                Binary bin = rec.getBinary( 12 );
-                assert(bin.length() == 12);
-//                System.console().writer().write(" here len "+ bin.length());
-//                System.console().flush();
+                Binary bin = rec.getBinary(12);
+                assert (bin.length() == 12);
+                // System.console().writer().write(" here len "+ bin.length());
+                // System.console().flush();
                 recordConsumer.addBinary(bin);
               } else {
                 try {
@@ -111,7 +117,7 @@ public class CsvWriteSupport extends WriteSupport<List<String>> {
                   // try a byte array a la
                   // https://www.programcreek.com/java-api-examples/index.php?source_dir=presto-master/presto-hive/src/test/java/com/facebook/presto/hive/parquet/TestParquetTimestampUtils.java
                   // todo : parse millis
-  
+
                   // org.apache.hadoop.hive.ql.io.parquet.timestamp.NanoTimeUtils;
                   // ts.getTime();
                   // nt.getBinary();
@@ -122,19 +128,22 @@ public class CsvWriteSupport extends WriteSupport<List<String>> {
                   // assertEquals(decodedTimestampMillis, timestamp.getTime());
                   // Int96Value i96 = new Int96Value(Binar));
                   boolean show_binary_i96 = false;
-                  if( show_binary_i96 ) {
-                    System.console().writer().write(" here nt len "+ nt.toBinary().length() + " val" + val);
+                  if (show_binary_i96) {
+                    System.console().writer().write(" here nt len " + nt.toBinary().length() + " val" + val);
                     System.console().writer().flush();
-                    byte [] b = nt.toBinary().getBytes();
-                    System.console().writer().write("\n here val" + val + " day   " + nt.getJulianDay() +                      " nanos:   "  + nt.getTimeOfDayNanos() + "\n");
-                    System.console().writer().write("\n here val" + val + " day 0x" + Integer.toHexString(nt.getJulianDay()) + " nanos: 0x"  + Long.toHexString(nt.getTimeOfDayNanos()) + "\n");
-                    for( int ii = 0; ii < b.length; ++ii) {
+                    byte[] b = nt.toBinary().getBytes();
+                    System.console().writer().write("\n here val" + val + " day   " + nt.getJulianDay() + " nanos:   "
+                        + nt.getTimeOfDayNanos() + "\n");
+                    System.console().writer()
+                        .write("\n here val" + val + " day 0x" + Integer.toHexString(nt.getJulianDay()) + " nanos: 0x"
+                            + Long.toHexString(nt.getTimeOfDayNanos()) + "\n");
+                    for (int ii = 0; ii < b.length; ++ii) {
                       String r = Integer.toHexString(b[ii]);
-                      if(r.length() > 2) {
-                        r = r.substring(r.length()-2, r.length());
+                      if (r.length() > 2) {
+                        r = r.substring(r.length() - 2, r.length());
                       }
                       System.console().writer().write(" " + r);
-                      if(ii % 4 == 3) 
+                      if (ii % 4 == 3)
                         System.console().writer().write(" - ");
                     }
                     System.console().writer().write("\n");
@@ -143,11 +152,13 @@ public class CsvWriteSupport extends WriteSupport<List<String>> {
                   // recordConsumer.addLong(result.getTime());
                 } catch (java.text.ParseException ex) {
                   long l = Long.parseLong(val);
-                  java.nio.ByteBuffer bb = java.nio.ByteBuffer.allocate(12).order(ByteOrder.BIG_ENDIAN).putInt(0).putLong(l);
+                  java.nio.ByteBuffer bb = java.nio.ByteBuffer.allocate(12).order(ByteOrder.BIG_ENDIAN).putInt(0)
+                      .putLong(l);
                   byte[] b = bb.array();
                   Binary bx = Binary.fromConstantByteArray(b);
-//                  System.console().writer().write(" here nt len "+ bx.length() + " val" + val +" " +  b[0] + " " + b[11]);
-                  //System.console().flush();
+                  // System.console().writer().write(" here nt len "+ bx.length() + " val" + val
+                  // +" " + b[0] + " " + b[11]);
+                  // System.console().flush();
                   recordConsumer.addBinary(bx);
                 }
               }
@@ -175,6 +186,12 @@ public class CsvWriteSupport extends WriteSupport<List<String>> {
                   xval = CSV2ParquetTimestampUtils.parseDateOrIntSloppy(val);
                 } else if (primtype.getOriginalType() == OriginalType.TIME_MILLIS) {
                   xval = Integer.valueOf(CSV2ParquetTimestampUtils.parseTimeMillisOrInt(val)).toString();
+                } else if (primtype.getOriginalType() == OriginalType.DECIMAL) {
+                  // try to strip a ".", then parse,
+                  String rval = val;
+                  rval = rval.replaceAll("\\.", "");
+                  long u = Long.parseLong(rval);
+                  xval = Long.toString(u);
                 } else {
                   xval = val;
                 }
@@ -192,27 +209,33 @@ public class CsvWriteSupport extends WriteSupport<List<String>> {
                   } catch (ParseException e) {
                     recordConsumer.addLong(Long.parseLong(val));
                   }
-                } else if ( primtype.getOriginalType() == OriginalType.TIMESTAMP_MICROS) {
+                } else if (primtype.getOriginalType() == OriginalType.TIMESTAMP_MICROS) {
                   try {
                     long valmicros = CSV2ParquetTimestampUtils.parseTimeStampMicros(val, false);
                     recordConsumer.addLong(valmicros);
                   } catch (ParseException e) {
                     recordConsumer.addLong(Long.parseLong(val));
                   }
-                } else if ( primtype.getOriginalType() == OriginalType.TIMESTAMP_MILLIS) {
+                } else if (primtype.getOriginalType() == OriginalType.TIMESTAMP_MILLIS) {
                   try {
                     long valmicros = CSV2ParquetTimestampUtils.parseTimeStampMillis(val, false);
                     recordConsumer.addLong(valmicros);
                   } catch (ParseException e) {
                     recordConsumer.addLong(Long.parseLong(val));
                   }
+                } else if (primtype.getOriginalType() == OriginalType.DECIMAL) {
+                  // try to strip a ".", then parse,
+                  String rval = val;
+                  rval = rval.replaceAll("\\.", "");
+                  long u = Long.parseLong(rval);
+                  recordConsumer.addLong(u);
                 }
                 /*
-                   * try { DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); // ,
-                   * Locale.ENGLISH); java.util.Date result = df.parse(val);
-                   * recordConsumer.addLong(result.getTime()); } catch (java.text.ParseException
-                   * ex) { recordConsumer.addLong(Long.parseLong(val)); }
-                   */
+                 * try { DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); // ,
+                 * Locale.ENGLISH); java.util.Date result = df.parse(val);
+                 * recordConsumer.addLong(result.getTime()); } catch (java.text.ParseException
+                 * ex) { recordConsumer.addLong(Long.parseLong(val)); }
+                 */
                 else {
                   recordConsumer.addLong(Long.parseLong(val));
                 }
@@ -243,7 +266,7 @@ public class CsvWriteSupport extends WriteSupport<List<String>> {
         }
       } catch (java.lang.UnsupportedOperationException e) {
         throw new IllegalArgumentException("column nr:" + i + " \"" + cols.get(i).getPath()[0] + "\" typed as "
-          + cols.get(i).getType() + " \n value: \"" + val + "\"", e);
+            + cols.get(i).getType() + " \n value: \"" + val + "\"", e);
       }
     }
     recordConsumer.endMessage();
