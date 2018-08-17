@@ -273,6 +273,7 @@ public class CsvReader implements RecordReader {
 
   class DecimalConverter extends ConverterImpl {
     private final int scale;
+
     DecimalConverter(IntWritable offset, int scale) {
       super(offset);
       this.scale = scale;
@@ -348,11 +349,31 @@ public class CsvReader implements RecordReader {
           try {
             temporalAccessor = DATE_TIME_FORMATTER.parseBest(values[offset], ZonedDateTime.FROM, LocalDateTime.FROM);
           } catch (DateTimeParseException ex) {
-            System.err.println(
-                "Error in row:" + row + " column:" + offset + " expected Timestamp parseable " + values[offset]);
-            System.err.println(" type expected is : " + CsvReader.this.schema.getFieldNames().get(offset) + " "
-                + CsvReader.this.schema.getChildren().get(offset).toString());
-            throw ex;
+            try {
+              long tm = CSV2ParquetTimestampUtils.parseTimeStampMicros(values[offset], false);
+              Timestamp a = new Timestamp(tm / 1000);
+              long remainder = (tm - ((long) (tm / 1000)) * 1000);
+              while (remainder < 0) {
+                remainder += 1000;
+              }
+              a.setNanos((int) remainder * 1000);
+              vector.set(row, a);
+            } catch (ParseException ex2) {
+              try {
+                long u = Long.parseLong(values[offset]);
+                Timestamp a = new Timestamp(u);
+                vector.set(row, a);
+              } catch (NumberFormatException ex3) {
+                System.err.println(
+                    "Error in row:" + row + " column:" + offset + " expected Timestamp parseable " + values[offset]);
+                System.err.println(" type expected is : " + CsvReader.this.schema.getFieldNames().get(offset) + " "
+                    + CsvReader.this.schema.getChildren().get(offset).toString());
+                String msg = "Error in row:" + row + " column:" + offset + " expected Timestamp parseable "
+                    + values[offset] + " type expected is : " + CsvReader.this.schema.getFieldNames().get(offset) + " "
+                    + CsvReader.this.schema.getChildren().get(offset).toString();
+                throw new DateTimeParseException(msg, values[offset], ex2.getErrorOffset(), ex2);
+              }
+            }
           }
           if (temporalAccessor instanceof ZonedDateTime) {
             vector.set(row, new Timestamp(((ZonedDateTime) temporalAccessor).toEpochSecond() * 1000L));
