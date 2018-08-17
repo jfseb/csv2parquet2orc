@@ -3,19 +3,33 @@
 CSV 2 Parquet and CSV 2 ORC converter 
 (blend of individual tools with aligned interface) 
 
+- csv to parquet conversion
+- csv to orc conversion
+ 
+- listing of meta information for orc/parquet (schema, statistics, encoding choices)
+- control some serialization formats (e.g. Strip size/BLock length, dictionary enable/disable) 
 
- - allows binary notation of input in CSV 
-  to force specific values into the parquet/orc file for test purposes
- (e.g. various float/double NAN, "out of range" int96 julian dates, other dates/timestamp, broken or 
-  wrong encoded unicode charaters etc.)
+- special features for generating test data
+ * allows binary notation of input in CSV 
+   to force specific values into the parquet/orc file for test purposes
+   (e.g. various float/double NAN, "out of range" int96 julian dates, other dates/timestamp, broken or 
+    wrong encoded unicode charaters etc.)
+ * allows to write int96 "Impala" timestamps
 
- - allows to write int96 "Impala" timestamps
+
+
+<!-- toc -->
+- [build](#build)
+- [run](#run)
+  
+<!-- tocstop -->
+
 
 # build 
 
 ```
-mvn clean compile assembly:single
-mvn test
+% mvn clean compile assembly:single
+% mvn test
 ```
 
 the mvn build builds a single jar with all dependencies packaged 
@@ -37,21 +51,33 @@ and provide a pull request. Thanks.
 # run 
 
 ## display schema of file
-schema <orc|parquet-file>   [-x|--extended]
+
+```
+% java -jar csv2parquet2orc-0.0.4-*.jar  schema afile.orc      [-x|--extended]
+% java -jar csv2parquet2orc-0.0.4-*.jar  schema afile.parquet  [-x|--extended]
+``` 
+
+## display meta information of a file
+
+```
+% java -jar csv2parquet2orc-0.0.4-*.jar meta abc.orc
+% java -jar csv2parquet2orc-0.0.4-*.jar meta abc.parquet
+``` 
 
 
 ## csv to parquet
 
 ```
-java -jar csv2parquet2orc-0.0.4-*   convert  -D parquet.compression=GZIP   input.csv  -s input.csv.schema -o out.parquet 
+% java -jar csv2parquet2orc-0.0.4-*   convert  -D parquet.compression=GZIP  input.csv  -s input.csv.schema -o out.parquet -S '|'
 ```
+
 
 options: 
  *  parquet.dictionary  true|false
  * -D parquet.DEFAULT_BLOCK_SIZE <int> 
  * -D parquet.DEFAULT_PAGE_SIZE <int>
 
- * -S '|' csv column separator
+ * -S '|' csv column separator, default ','
  * -H 1   skip 1 line in csv (e.g. header line)
  
  
@@ -60,6 +86,23 @@ options:
 ```
 java -jar csv2parquet2orc-0.0.2-*   convert  -D orc.compression=ZIP   input.csv  -s input.csv.schema -o out.orc 
 ```
+
+## some csv options
+
+the following is a subset of options
+
+| option | option example | parquet | orc | Comment
+| --- | --- | --- | --- |
+| explicit schema file spec | -s abc.schema.orc | yes | yes |
+| Skip header lines | -H 1 | yes | yes |
+| Separator | -S '\|' | yes | yes | 
+| Binary 0x12EFx0 (1) |  -Dcsvformat=binary | yes | yes(2) |
+
+
+ * (1) -D csvformat=binary shall be entered before the command  |
+ * (2) Timestamp and decimal writing for orc via semi-typed classes of orc reader which may limit 
+       full byte range
+
 
 ## csv binary notation
 
@@ -85,22 +128,6 @@ java -jar csv2parquet2orc-0.0.2-*   convert  -D orc.compression=ZIP   input.csv 
    Where needed, it will be left-padded with 00 or truncated to the target width. 
    Subsequently is is interpreted as the binary representation of the data
 
-## csv options support
-
-
-
-
-| option | option example | parquet | orc | Comment
-| --- | --- | --- | --- |
-| explicit schema file spec | -s abc.schema.orc | yes | yes |
-| Skip header lines | -H 1 | yes | yes |
-| Separator | -S '\|' | yes | yes | 
-| Binary 0x12EFx0 (1) |  -Dcsvformat=binary | yes | yes(2) |
-
-
- * (1) -D csvformat=binary shall be entered before the command  |
- * (2) Timestamp and decimal writing for orc via semi-typed classes of orc reader which may limit 
-       full byte range
 
 ## other commands
 
@@ -174,4 +201,35 @@ see
   (Normal integers/date/time/character strings etc. are to be written in big-endian order, so the number 
      2440588 would be  `0x00253D8Cx0` , "ABC" is `0x414243x0` etc..)
    
+   
+ # example schemas 
+ 
+ 
+ 
+ ## parquet schema 
+ ```
+ message m {
+  OPTIONAL int32 d32 (DATE);
+  OPTIONAL binary c3 (UTF8);
+  OPTIONAL int64  d9_5 (DECIMAL(9,5);  
+  OPTIONAL binary d3_8 (DECIMAL(38,5);  
+  OPTIONAL int32 ui16 (UINT_32);
+  OPTIONAL int32 i32;
+  OPTIONAL int32 t_millis (TIME_MILLIS) ;
+  OPTIONAL int64 t_micros (TIME_MICROS);
+  OPTIONAL int64 ts_millis (TIMESTAMP_MILLIS) ;
+  OPTIONAL int64 ts_micros (TIMESTAMP_MICROS);
+  OPTIONAL int96 ts_i96  (TIMESTAMP);
+  OPTIONAL double dbl;
+  OPTIONAL float  flt;  
+  OPTIONAL int64 plain;
+  OPTIONAL binary c4 (UTF8);
+ }
+ ```
 
+## orc schema
+
+struct<cust_key:int,name:string,nation_keys:smallint,acctbal:double,adate:date,adec:decimal(9,5)>
+
+run meta <filename> on 
+https://github.com/apache/orc/tree/master/examples 
