@@ -32,8 +32,9 @@ public class ParseHexRec {
 
     public Binary getBinary(int len) {
       if (this.binary.length() >= len) {
+//        System.out.println(" too long " + this.binary.length() );
         Binary res = this.binary.copy();
-        res.slice(this.binary.length() - len, this.binary.length());
+        res = res.slice(this.binary.length() - len, len);
         return res;
       }
 
