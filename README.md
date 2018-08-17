@@ -10,18 +10,23 @@ CSV 2 Parquet and CSV 2 ORC converter
 - control some serialization formats (e.g. Strip size/BLock length, dictionary enable/disable) 
 
 - special features for generating test data
- * allows binary notation of input in CSV 
-   to force specific values into the parquet/orc file for test purposes
-   (e.g. various float/double NAN, "out of range" int96 julian dates, other dates/timestamp, broken or 
+  ** allows binary notation of input in CSV 
+    to force specific values into the parquet/orc file for test purposes
+    (e.g. various float/double NAN, "out of range" int96 julian dates, other dates/timestamp, broken or 
     wrong encoded unicode charaters etc.)
- * allows to write int96 "Impala" timestamps
+  ** allows to write int96 "Impala" timestamps
 
 
+# table of contents
 
 <!-- toc -->
-- [build](#build)
-- [run](#run)
-  
+* [build](#build)
+* [run](#run)
+* [csv to parquet](#csv to parquet)  
+* [csv to orc](#csv to orc) 
+* [example schemas](#example schemas) 
+* [running on windows](#running on windows)
+* [parquet Int96 timestamp](#parquet Int96 timestamp)
 <!-- tocstop -->
 
 
@@ -155,13 +160,14 @@ and                [https://github.com/apache/orc/tree/master/tools]
 Apache License 2.0
 
 
-# Windows: 
+# running on windows:
 
 to operate the functionality on windows, one may have to set 
 environment variable HADOOP_HOME and install at least  
-  winutils.exe in HADOOP_HOME  there. 
+  winutils.exe from a hadoop installation or https://github.com/steveloughran/winutils 
+  in HADOOP_HOME. 
   
-  example:
+ example:
 
  - HADOOP_HOME=   c:\progs\hadoop
  - PATH= %PATH%;HADOOP_HOME\bin 
@@ -169,17 +175,29 @@ environment variable HADOOP_HOME and install at least
 (A full hadoop installation is not required)
 
 
-## Int96 timestamp aka impala timestamps
+## parquet int96 timestamp
 
-The converter used the messed up "Hive" julian calendar conversion calculation 
+(aka impala timestamps)
 
-so for this reader  
+Timestamps are stored in a 12 bytes 
+
+int64_t nanoseconds of the day (from midnight!)
+int32_t julianday (offset see below)
+
+The converter used the messed up "Hive" julian calendar conversion calculation below: 
+
 ```
 Hive converts "1970-01-01 00:00:00.0" to Julian timestamp:
 (julianDay=2440588, timeOfDayNanos=0)
 ```
 see
 <https://issues.apache.org/jira/browse/HIVE-6394?focusedCommentId=14711046&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-14711046>
+
+and "1970-01-01 12:00:00" to Julian timestamp:
+(julianDay=2440588, timeOfDayNanos= 12*60*60*1000*1000*1000)  still have the julianDay 2440588 (!)
+
+while 1970-01-02 00:00:00 
+(julianDay=2440588, timeOfDayNanos= 0) has julianDay 2440589(!)
 
 
 *Beware:*
