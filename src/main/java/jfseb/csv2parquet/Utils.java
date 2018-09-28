@@ -442,6 +442,7 @@ public class Utils {
   public static void verifyCanonize(File expectedCsvFile, File outputCsvFile, String[][] canonic) throws IOException {
     BufferedReader expected = null;
     BufferedReader out = null;
+    String head = " file exp:" + expectedCsvFile.getCanonicalPath() + "\nfile out:: " + outputCsvFile.getCanonicalPath() ;
     try {
       expected = new BufferedReader(new FileReader(expectedCsvFile));
       out = new BufferedReader(new FileReader(outputCsvFile));
@@ -453,7 +454,7 @@ public class Utils {
         lineOut = lineOut.substring(lineOut.indexOf("\t") + 1);
         String lineIn2 = canonize(canonic, lineIn);
         String lineOut2 = canonize(canonic, lineOut);
-        assertEquals("line " + lineNumber, lineIn2, lineOut2);
+        assertEquals(head + "\nline " + lineNumber, lineIn2, lineOut2);
       }
       assertNull("line " + lineNumber, lineIn);
       assertNull("line " + lineNumber, out.readLine());

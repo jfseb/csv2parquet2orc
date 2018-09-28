@@ -147,7 +147,9 @@ public class Driver {
     DriverOptions options = new DriverOptions(args);
 
     if (options.command == null) {
-      System.err.println("CSV to parquet converter V0.0.3");
+      System.err.println("CSV to parquet converter (csv2parquet2orc)  parquet 1.9.0 orc 1.4.0 ");
+      System.err.println(" - https://github.com/jfseb/csv2parquet2orc       (parquet 1.9.x orc  1.4");
+      System.err.println(" * https://github.com/jfseb/csv2parquet2orc_p1_10 (parquet 1.10.x orc 1.5x");
       System.err.println();
       System.err.println("usage: java -jar csv2parquet*.jar [--help]" + " [--define X=Y] <command> <args>");
       System.err.println();
