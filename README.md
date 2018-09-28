@@ -29,11 +29,11 @@ CSV 2 Parquet and CSV 2 ORC converter
 <!-- toc -->
 * [build](#build)
 * [run](#run)
-* [csv to parquet](#csv to parquet)  
-* [csv to orc](#csv to orc) 
-* [example schemas](#example schemas) 
-* [running on windows](#running on windows)
-* [parquet Int96 timestamp](#parquet Int96 timestamp)
+* [csv to parquet](#csv-to-parquet)
+* [csv to orc](#csv-to-orc)
+* [example schemas](#example-schemas)
+* [running on windows](#running-on-windows)
+* [parquet Int96 timestamp](#parquet-Int96-timestamp)
 <!-- tocstop -->
 
 
