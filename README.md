@@ -16,7 +16,14 @@ CSV 2 Parquet and CSV 2 ORC converter
     wrong encoded unicode charaters etc.)
   ** allows to write int96 "Impala" timestamps
 
+# version of tools
 
+| repository | parquet version | orc version | Comment
+| --- | --- | --- | --- |
+| [csv2parquet2orc](https://github.com/jfseb/csv2parquet2orc)        | 1.9.0 | 1.4.x|  parquet signed byte ordering for binary !  |
+| [csv2parquet2orc_p1_10](https://github.com/jfseb/csv2parquet2orc_p1_10)  | 1.10.x | 1.5.x |   |
+
+ 
 # table of contents
 
 <!-- toc -->
