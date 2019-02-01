@@ -169,6 +169,8 @@ public class SchemaCreator {
       return TypeDescription.createFloat();
     } else if (PrimitiveTypeName.DOUBLE == nmprim) {
       return TypeDescription.createDouble();
+    } else if (PrimitiveTypeName.BOOLEAN == nmprim ) {
+      return TypeDescription.createBoolean();
     }
     throw new IllegalArgumentException("unknown type " + tp.getName() + "\n" + tp);
   }
