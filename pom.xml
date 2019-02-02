@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.jfseb.csv2parquet2orc</groupId>
 	<artifactId>csv2parquet2orc</artifactId>
-	<version>0.0.4-SNAPSHOT</version>
+	<version>0.0.5-SNAPSHOT</version>
 	<name>csv_parquet_orc_converter</name>
 	<url>https://github.com/jfseb/csv2parquet2orc</url>
 	<description>CSV 2 Parquet and orc converter</description>

@@ -124,6 +124,7 @@ public class ConvertUtils {
       if ("ZIP".equals(cmdline) || "GZIP".equals(cmdline)) {
         codecName = CompressionCodecName.GZIP;
       } else if ("SNAPPY".equals(cmdline)) {
+        codecName = CompressionCodecName.SNAPPY;
       } else if ("NONE".equals(cmdline) || "UNCOMPRESSED".equals(cmdline)) {
         codecName = CompressionCodecName.UNCOMPRESSED;
       } else {
@@ -133,6 +134,11 @@ public class ConvertUtils {
       page_size = conf.getInt("parquet.PAGE_SIZE", org.apache.parquet.hadoop.ParquetWriter.DEFAULT_PAGE_SIZE);
     }
     readAsBinary |= csvOptions.csvFormatBinary;
+    
+    System.err.println("parquet.BLOCK_SIZE=" + Integer.toString(block_size));
+    System.err.println("parquet.PAGE_SIZE=" + Integer.toString(page_size));
+    System.err.println("parquet.enabledictionary=" + Boolean.toString(enableDictionary));
+    System.err.println("parquet.compress=" + codecName.toString() );
 
     USchema schemas = SchemaCreator.makeSchema(csvFile,schemaString);
     

@@ -85,9 +85,10 @@ and provide a pull request. Thanks.
 
 
 options: 
- *  parquet.dictionary  true|false
- * -D parquet.DEFAULT_BLOCK_SIZE <int> 
- * -D parquet.DEFAULT_PAGE_SIZE <int>
+ * -D parquet.BLOCK_SIZE=<int>  (in Bytes)
+ * -D parquet.PAGE_SIZE=<int>
+ * -D parquet.compress=[GZIP|SNAPPY|NONE]  default GZIP
+ * -D parquet.enabledictionary=[true|false]
 
  * -S '|' csv column separator, default ','
  * -H 1   skip 1 line in csv (e.g. header line)
