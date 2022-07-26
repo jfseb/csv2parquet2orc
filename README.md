@@ -19,7 +19,7 @@ CSV 2 Parquet and CSV 2 ORC converter
 # version of tools
 
 | repository | parquet version | orc version | Comment
-| --- | --- | --- | --- |
+|---|---|---|---|
 | [csv2parquet2orc](https://github.com/jfseb/csv2parquet2orc)        | 1.9.0 | 1.4.x|  parquet signed byte ordering for binary !  |
 | [csv2parquet2orc_p1_10](https://github.com/jfseb/csv2parquet2orc_p1_10)  | 1.10.x | 1.5.x |   |
 
@@ -105,7 +105,7 @@ java -jar csv2parquet2orc-0.0.2-*   convert  -D orc.compression=ZIP   input.csv 
 the following is a subset of options
 
 | option | option example | parquet | orc | Comment
-| --- | --- | --- | --- |
+|--------|----------------|---------|-----|--------
 | explicit schema file spec | -s abc.schema.orc | yes | yes |
 | Skip header lines | -H 1 | yes | yes |
 | Separator | -S '\|' | yes | yes | 
